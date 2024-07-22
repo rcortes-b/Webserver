@@ -7,12 +7,16 @@
 
 class ServerConfig {
 	private:
-			unsigned int	port; //Esto puede ser un contenedor, depende de si hay que almacenar más de un tipo de puerto
-			std::string		host;
-			std::string		server_name;
+			unsigned int	_port; //Esto puede ser un contenedor, depende de si hay que almacenar más de un tipo de puerto
+			std::string		_host;
+			std::string		_server_name;
 			// (...)
 
 	public:
+			ServerConfig( void );
+			ServerConfig( ServerConfig const &obj );
+			ServerConfig &operator=( ServerConfig const &obj );
+			~ServerConfig( void );
 };
 
 #endif

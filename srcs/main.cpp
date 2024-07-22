@@ -1,5 +1,7 @@
 //include headers here
 #include "../includes/ServerConfig.hpp"
+#include "../includes/ServerRequests.hpp"
+
 /*
 ERROR MESSAGES
 	- "The file has not a valid format. \".conf format is required.\""
