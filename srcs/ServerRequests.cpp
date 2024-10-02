@@ -13,7 +13,8 @@ ServerRequests::ServerRequests(ServerRequests const &obj)
 
 ServerRequests	&ServerRequests::operator=(ServerRequests const &obj)
 {
-	
+	(void)obj;
+	return (*this);
 }
 
 ServerRequests::~ServerRequests(void)

@@ -4,8 +4,8 @@ CC = c++
 FLAGS = -Wall -Wextra -Werror -std=c++98 -g
 RM = rm -rf
 
-HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp
-SRCS = srcs/main.cpp \
+HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp includes/ConfigFile.hpp
+SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
 		srcs/ServerConfig.cpp srcs/ServerRequests.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
