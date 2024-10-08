@@ -1,7 +1,8 @@
 //include headers here
-#include "../includes/ServerConfig.hpp"
-#include "../includes/ServerRequests.hpp"
-#include "../includes/ConfigFile.hpp"
+# include "../includes/ServerConfig.hpp"
+# include "../includes/ServerRequests.hpp"
+# include "../includes/ConfigFile.hpp"
+# include "../includes/SimpleSocket.hpp"
 
 /*
 ERROR MESSAGES
@@ -75,5 +76,13 @@ int main(int argc, char **argv)
 	}
 	
 	//start connections
-
+	try
+	{
+		//YA VEREMOS QUE PASAR COMO ARGUEMENTO
+		connectServer();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
 }
