@@ -2,7 +2,7 @@
 
 bool terminate_sig = false;
 
-void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec)
+static void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec)
 {
 	close(epoll_fd);
 	for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
@@ -10,13 +10,13 @@ void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec)
 	SysError();
 }
 
-void	handleSignal(int sig)
+static void	handleSignal(int sig)
 {
 	std::cout << "\nEXIT SERVER" << '\n';
 	terminate_sig = true;
 }
 
-void	connect(void)
+void	connectServer(void)
 {
 	std::cout << "START" << '\n';
 	std::signal(SIGINT, handleSignal);

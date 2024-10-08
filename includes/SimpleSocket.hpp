@@ -23,6 +23,7 @@ typedef struct addrinfo	t_addrinfo;
 typedef std::vector<std::string>::iterator it_strvec;
 typedef struct epoll_event t_epolle;
 
+void	connectServer(void);
 
 class SysError: public std::exception
 {
