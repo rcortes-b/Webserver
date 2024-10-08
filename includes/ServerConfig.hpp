@@ -4,12 +4,30 @@
 # include <iostream>
 # include <stdbool.h>
 # include <cstring>
+# include <vector>
+
+enum	e_autoindex {
+	NONE,
+	ON,
+	OFF
+};
+
+class serverLocation {
+	private:
+	public:
+};
 
 class ServerConfig {
 	private:
-			unsigned int	_port; //Esto puede ser un contenedor, depende de si hay que almacenar más de un tipo de puerto
-			std::string		_host;
-			std::string		_server_name;
+			std::vector<serverLocation>	_location;
+			std::vector<std::string>	_port;
+			std::string					_host;
+			std::string					_server_name;
+			std::string					_error_page;
+			std::string					_max_size;
+			std::string					_root;
+			std::string					_index_file;
+			unsigned int				_autoindex;
 			// (...)
 
 	public:
@@ -17,6 +35,17 @@ class ServerConfig {
 			ServerConfig( ServerConfig const &obj );
 			ServerConfig &operator=( ServerConfig const &obj );
 			~ServerConfig( void );
+
+			//void	setLocation();
+			void	setPort( std::string line);
+			void	setHost( std::string line);
+			void	setServerName( std::string line);
+			void	setErrorPage( std::string line);
+			void	setMaxSize( std::string line);
+			void	setRoot( std::string line);
+			void	setIndexFile( std::string line);
+			void	setAutoIndex( std::string line);
+
 };
 
 #endif

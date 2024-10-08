@@ -9,6 +9,7 @@ HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp \
 SRCS = srcs/main.cpp \
 		srcs/ServerConfig.cpp srcs/ServerRequests.cpp \
 		srcs/connections.cpp srcs/SimpleSocket.cpp
+    
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 

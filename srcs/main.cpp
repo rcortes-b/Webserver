@@ -1,6 +1,7 @@
 //include headers here
 #include "../includes/ServerConfig.hpp"
 #include "../includes/ServerRequests.hpp"
+#include "../includes/ConfigFile.hpp"
 
 /*
 ERROR MESSAGES
@@ -15,7 +16,7 @@ class ThrowError : public std::exception {
 					case 0:
 							return ("The file has not a valid format. \".conf format is required.\"");
 					case 1:
-							return ("");
+							return ("Error opening the file.");
 					case 2:
 							return ("");
 					case 3:
@@ -27,23 +28,27 @@ class ThrowError : public std::exception {
 			}
 };
 
-void	parse_file(std::string file)
+static void	parse_file(std::string &file)
 {
-	//En este bloque se comprueba que sea del formato correcto (.conf)
 	size_t	len = file.size();
-	if (len < 6)
+	if (len < 6) //Comprueba que tiene un mínimo de carácteres para que sea .conf
 		throw ThrowError();
 	std::string	format = ".conf";
 	len -= 1;
-	for (unsigned int i = 0; i < 5; i++) {
-		if (file[len] != format[len])
+	for (unsigned int i = 0; i < 5; i++) { //Se asegura que es un .conf comparando los últimos carácteres
+		if (file[len] != format[4 - i])
 			throw ThrowError();
 		len--;
 	}
 
-	//En este bloque se comprueba 
-	
-
+	std::fstream	f;
+	f.open(file.c_str());
+	if (!f)
+	{
+		err_code = 1;
+		throw ThrowError();
+	}
+	(void)parse_server_data(f);
 }
 
 int main(int argc, char **argv)
