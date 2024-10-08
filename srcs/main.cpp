@@ -60,4 +60,15 @@ int main(int argc, char **argv)
 		std::cerr << e.what(err_code) << std::endl;
 	}
 	//parse file
+	try
+	{
+		
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
+	//start connections
+
 }
