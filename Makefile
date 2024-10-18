@@ -5,10 +5,13 @@ FLAGS = -Wall -Wextra -Werror -std=c++98 -g
 RM = rm -rf
 
 HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp \
-		includes/SimpleSocket.hpp
+		includes/SimpleSocket.hpp includes/Response.hpp \
+		includes/Petition.hpp
 SRCS = srcs/main.cpp \
 		srcs/ServerConfig.cpp srcs/ServerRequests.cpp \
-		srcs/connections.cpp srcs/SimpleSocket.cpp
+		srcs/connections.cpp srcs/SimpleSocket.cpp \
+		srcs/Response.cpp srcs/Petition.cpp \
+		srcs/petition_handler.cpp
     
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)

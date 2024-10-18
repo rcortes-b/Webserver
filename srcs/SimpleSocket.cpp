@@ -1,4 +1,5 @@
 # include "../includes/SimpleSocket.hpp"
+# include "../includes/Response.hpp"
 
 SimpleSocket::SimpleSocket()
 {
@@ -76,32 +77,70 @@ int	SimpleSocket::acceptConnection(void)
 	return (clientSocket);
 }
 
-int	SimpleSocket::readPetition(int clientFd)
+int	SimpleSocket::readPetition(int clientFd, std::string &petition)
 {
-	std::cout << "READ PETITION" << '\n';
+	std::cout << "BEFORE READ PETITION" << '\n';
 	char buffer[MAX_BUFFER_SIZE];
-	size_t	msgSize = 0;
-	size_t	bytesRead;
+	int	bytesRead;
+	std::memset(buffer, 0, MAX_BUFFER_SIZE);
 
-	while (true)
-	{
-		bytesRead = recv(clientFd, buffer + msgSize, MAX_BUFFER_SIZE, 0);
-		msgSize += bytesRead;
-		if (bytesRead < 0)
-		{
-			close(clientFd);
+	// SI VOLEM FER MULTIPLEXING (HTTP/2) PODIEM FER UN FILL CADA COP QUE LLEGIM UNA PETICIO I QUE EL PARE ES QUEDI ESCOLTANT
+	bytesRead = recv(clientFd, buffer, MAX_BUFFER_SIZE, 0);
+	std::cout << "BYTES READ == " << bytesRead << '\n';
+	if (bytesRead < 0) //ERROR
+		return (1);
+	else if (bytesRead == 0) // CONNECTION CLOSED BY CLIENT
+		return (2);
+	std::string str_buffer(buffer);
+	petition.append(str_buffer);
+	size_t token = -1;
+
+	if (petition.find("\r\n\r\n") != std::string::npos)
+		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd))
 			return (1);
-		}
-		// TEMPORAL LO DEL TERMINAR CUANDO TERMINA EL MENSAJE ES POR KEEP-ALIVE DE LA PETICION
-		if (bytesRead == 0 || (buffer[msgSize - 4] == '\r' && buffer[msgSize - 3] == '\n' && buffer[msgSize - 2] == '\r' && buffer[msgSize - 1] == '\n'))
-			break;
+		else
+			return (2);
+	else if (petition.find("\n\n") != std::string::npos)
+		if (SimpleSocket::readBody(petition, "\n\n", clientFd))
+			return (1);
+		else
+			return (2);
+
+	std::cout << "AFTER READ PETICION" << '\n';
+	return (0);
+	
+	// SOLO PARA TEST EL DE ARRIBA ES EL BUENO
+	// std::string str_buffer(buffer);
+	// petition.append(str_buffer);
+	// std::cout << "AFTER READ PETICION" << '\n' << petition << '\n';
+	// std::cout << "PETICION:\n" << petition << '\n';
+	// handlePetition(petition, clientFd);
+	// return (2); 
+}
+
+int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd)
+{
+	size_t token_pos = petition.find(token);
+	std::string header = petition.substr(0, token_pos);
+	std::string body = petition.substr(token_pos + token.length());
+	int content_len = 0;
+	int start;
+	if ((start = header.find("Content-Length:")) != std::string::npos)
+	{
+		int end;
+		start =+ 15;
+		if ((end = header.find("\r\n")) != std::string::npos)
+			return (1);
+		content_len = std::stoi(header.substr(start, end));
 	}
-	buffer[msgSize] = '\0';
-	// TEMPORAL AQUI LLAMAR FUNCION PARA GESTIONAR PETICIONES
-	std::cout << "PETICION:\n" << buffer << '\n';
-	// FINS AQUI
-	std::cout << "AFTER PETICION" << '\n';
-	close(clientFd);
+	char buffer[content_len + 1];
+	if (content_len > 0 && recv(clientFd, buffer, content_len, 0) < 0)
+		return (1);
+	buffer[content_len + 1] = '\0';
+	std::string next_body(buffer);
+	petition = header + body + next_body;
+	std::cout << "PETICION:\n" << petition << '\n';
+	handlePetition(petition, clientFd);
 	return (0);
 }
 
@@ -112,6 +151,7 @@ int	SimpleSocket::getServerSocket(void) const
 
 void SimpleSocket::clearData(void)
 {
+	std::cout << "CLEANING SOCKET" << '\n';
 	if (this->addrinfo != nullptr)
 		freeaddrinfo(this->addrinfo);
 	if (this->serverSocket != -1)

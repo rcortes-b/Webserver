@@ -6,11 +6,13 @@
 # include <netinet/in.h>
 # include <unistd.h>
 # include <sys/types.h>
+# include <sys/wait.h>
 # include <netdb.h>
 # include <vector>
 # include <csignal>
 # include <sys/epoll.h>
 # include <fcntl.h>
+# include <map>
 
 //placeholders
 # define MAX_CONNECTIONS 1024
@@ -23,7 +25,6 @@ typedef struct addrinfo	t_addrinfo;
 typedef std::vector<std::string>::iterator it_strvec;
 typedef struct epoll_event t_epolle;
 
-void	connectServer(void);
 
 class SysError: public std::exception
 {
@@ -60,9 +61,9 @@ public:
 
 	void setSocket(std::string port);
 	int acceptConnection(void);
-	static int	readPetition(int clientFd);
+	static int	readPetition(int clientFd, std::string &petition);
+	static int	readBody(std::string &petition, std::string token, int clientFd);
 	void clearData(void);
-
 	int	getServerSocket(void) const;
 };
 
