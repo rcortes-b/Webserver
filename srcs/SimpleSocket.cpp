@@ -123,19 +123,21 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 	size_t token_pos = petition.find(token);
 	std::string header = petition.substr(0, token_pos);
 	std::string body = petition.substr(token_pos + token.length());
-	int content_len = 0;
-	int start;
-	if ((start = header.find("Content-Length:")) != std::string::npos)
+	u_long content_len = 0;
+	size_t start = header.find("Content-Length:");
+	if (start != std::string::npos)
 	{
-		int end;
-		start =+ 15;
-		if ((end = header.find("\r\n")) != std::string::npos)
+		size_t end;
+		start = start + 15;
+		if ((end = header.find("\r\n")) == std::string::npos && (end = header.find("\n")) == std::string::npos)
 			return (1);
-		content_len = std::stoi(header.substr(start, end));
+		content_len = std::stoul(header.substr(start, end));
 	}
+
 	char buffer[content_len + 1];
-	if (content_len > 0 && recv(clientFd, buffer, content_len, 0) < 0)
-		return (1);
+	if (content_len > 0)
+		recv(clientFd, buffer, content_len, 0);
+	
 	buffer[content_len + 1] = '\0';
 	std::string next_body(buffer);
 	petition = header + body + next_body;

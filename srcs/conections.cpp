@@ -2,11 +2,13 @@
 
 bool terminate_sig = false;
 
-void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec)
+void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec, std::map<int, std::string> listeningSockets)
 {
 	close(epoll_fd);
 	for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
 		(*it).clearData();
+	for (it_lstsock it = listeningSockets.begin(); it != listeningSockets.end(); it++)
+		close(it->first);
 	throw SysError();
 }
 
@@ -16,14 +18,14 @@ void	handleSignal(int sig)
 	terminate_sig = true;
 }
 
-void	connectServer(void)
+int	main(void)
 {
 	std::cout << "START" << '\n';
 	std::signal(SIGINT, handleSignal);
 	try
 	{
 		//placeholder parametro
-		std::map<int, std::string> clients;
+		std::map<int, std::string> listeningSockets;
 		std::vector<std::string> test_ports;
 		test_ports.push_back("8080");
 		test_ports.push_back("1024");
@@ -54,7 +56,7 @@ void	connectServer(void)
 			if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
 			{
 				std::cout << "Error on fd: " << event.data.fd << '\n';
-				errorHandling(epoll_fd, socketsVec);
+				errorHandling(epoll_fd, socketsVec, listeningSockets);
 			}
 		}
 		while (!terminate_sig)
@@ -67,7 +69,7 @@ void	connectServer(void)
 			if (terminate_sig)
 				break;
 			if (event_count == -1)
-				errorHandling(epoll_fd, socketsVec);
+				errorHandling(epoll_fd, socketsVec, listeningSockets);
 			std::cout << "EPOLL FOUND! count: " << event_count << '\n';
 
 			for (size_t i = 0; i < event_count; i++)
@@ -82,13 +84,13 @@ void	connectServer(void)
 					t_epolle event;
 					event.events = EPOLLIN;
 					event.data.fd = (*it).acceptConnection();
-					clients[event.data.fd] = "";
+					listeningSockets[event.data.fd] = "";
 					int flags = fcntl(event.data.fd, F_GETFL, 0);
 					flags |= O_NONBLOCK;
 					if (fcntl(event.data.fd, F_SETFL, flags) < 0)
-						errorHandling(epoll_fd, socketsVec);
+						errorHandling(epoll_fd, socketsVec, listeningSockets);
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
-						errorHandling(epoll_fd, socketsVec);
+						errorHandling(epoll_fd, socketsVec, listeningSockets);
 				}
 				else
 				{
@@ -103,24 +105,24 @@ void	connectServer(void)
 					
 					int clientFd = events[i].data.fd;
 					// TEST CREO QUE NO ES NECESARIO
-					if (clients.find(clientFd) == clients.end())
+					if (listeningSockets.find(clientFd) == listeningSockets.end())
 					{
 						std::cout << clientFd << " NOT FOUND!" << '\n';
 					}
-					int status = SimpleSocket::readPetition(clientFd, clients[clientFd]);
+					int status = SimpleSocket::readPetition(clientFd, listeningSockets[clientFd]);
 					if (status == 1) // ERROR
 					{
-						clients.erase(clientFd);
+						listeningSockets.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))
-							errorHandling(epoll_fd, socketsVec);
+							errorHandling(epoll_fd, socketsVec, listeningSockets);
 						close(clientFd);
-						errorHandling(epoll_fd, socketsVec);
+						errorHandling(epoll_fd, socketsVec, listeningSockets);
 					}
 					else if (status == 2) // CLOSED CONNECTION
 					{
-						clients.erase(clientFd);
+						listeningSockets.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))
-							errorHandling(epoll_fd, socketsVec);
+							errorHandling(epoll_fd, socketsVec, listeningSockets);
 						close(clientFd);
 					}
 				}
@@ -129,9 +131,14 @@ void	connectServer(void)
 		close(epoll_fd);
 		for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
 			(*it).clearData();
+		for (it_lstsock it = listeningSockets.begin(); it != listeningSockets.end(); it++)
+			close(it->first);
+		
 	}
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
 	}
+	
+	return (0);
 }

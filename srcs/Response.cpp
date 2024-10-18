@@ -90,11 +90,10 @@ void	Response::setUp(std::string petition)
 			statusLine = statusLine.substr(token);
 		}
 	}
-	from = 0;
-	if ((token = statusLine.find("\0")) == std::string::npos)
+	if ((from = statusLine.find("\0")) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 	
-	std::string headers = petition.substr(from, token);
+	std::string headers = petition.substr(from);
 	this->handleHeaders(headers);
 }
 
@@ -202,7 +201,7 @@ void Response::sendResponseMsg(int socketFd)
 	// WRITE DEL BUFFER AL SOCKET (de fet nomes tractar body si el statusCode es 200)
 	// POTSER UTILITZAR SYNC I/O PER L'OPEN
 
-	char buffer_body[MAX_BODYSIZE];
+	char buffer_body[MAX_BODYSIZE + 1];
 	std::memset(buffer_body, '\0', MAX_BODYSIZE);
 	struct stat stat_buf;
 	std::string method = this->petition.getMethod();

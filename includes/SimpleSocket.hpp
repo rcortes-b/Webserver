@@ -23,6 +23,7 @@ typedef struct sockaddr_in	t_sockaddr_in;
 typedef struct sockaddr t_sockaddr;
 typedef struct addrinfo	t_addrinfo;
 typedef std::vector<std::string>::iterator it_strvec;
+typedef std::map<int, std::string>::iterator it_lstsock;
 typedef struct epoll_event t_epolle;
 
 
