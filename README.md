@@ -7,3 +7,7 @@ Configuration File, rules that we chose:
 
 JSON Rules:
 			- 
+
+
+ToDo:
+		- Checkear que no existe uno anterior definido

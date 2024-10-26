@@ -13,6 +13,9 @@ SRCS = srcs/main.cpp \
 		srcs/Response.cpp srcs/Petition.cpp \
 		srcs/petition_handler.cpp
     
+HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp includes/ConfigFile.hpp includes/ServerLocation.hpp
+SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
+		srcs/ServerConfig.cpp srcs/ServerRequests.cpp srcs/ServerLocation.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 
