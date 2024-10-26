@@ -7,6 +7,14 @@ ServerLocation::ServerLocation(void)
 	_root = "";
 	_autoindex = NONE;
 	_index = "";
+	_isDefMethods = false;
+	_isDefRedirect = false;
+	_isDefRoot = false;
+	_isDefAutoIndex = false;
+	_isDefIndex = false;
+	_isDefCgi = false;
+
+
 }
 
 ServerLocation::ServerLocation(ServerLocation const &obj)
@@ -23,6 +31,12 @@ ServerLocation	&ServerLocation::operator=(ServerLocation const &obj)
 	_root = obj._root;
 	_autoindex = obj._autoindex;
 	_index = obj._index;
+	_isDefMethods = obj._isDefMethods;
+	_isDefRedirect = obj._isDefRedirect;
+	_isDefRoot = obj._isDefRoot;
+	_isDefAutoIndex = obj._isDefAutoIndex;
+	_isDefIndex = obj._isDefIndex;
+	_isDefCgi = obj._isDefCgi;
 
 	return *this;
 }
@@ -75,6 +89,8 @@ void	ServerLocation::setMethods(std::string line)
 	unsigned int	front_limit = 0;
 	unsigned int	back_limit = 0;
 
+	if (_isDefMethods)
+		throw ThrowError("Error: Methods has been already defined");
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
 		if (line[i] == ',' || line[i] == ';')
@@ -95,39 +111,52 @@ void	ServerLocation::setMethods(std::string line)
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Allow_methods line is empty";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefMethods = true;
 }
 
 void	ServerLocation::setRedirect(std::string line)
 {
+	if (_isDefRedirect)
+		throw ThrowError("Error: Return has been already defined");
 	if (!get_single_value(line, _redirect)) {
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Return definition is not valid";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefRedirect = true;
 }
 
 
 void	ServerLocation::setRoot(std::string line)
 {
+	if (_isDefRoot)
+		throw ThrowError("Error: Root has been already defined");
 	if (!get_single_value(line, _root)) {
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Root definition is not valid";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefRoot = true;
 }
 
 void	ServerLocation::setAutoIndex(std::string line)
 {
+	if (_isDefAutoIndex)
+		throw ThrowError("Error: Autoindex has been already defined");
 	if (!get_AutoIndex(line, _autoindex)) {
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Autoindex definition is not valid";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefAutoIndex = true;
 }
 
 void	ServerLocation::setIndex(std::string line)
 {
+	if (_isDefIndex)
+		throw ThrowError("Error: Index has been already defined");
 	if (!get_single_value(line, _index)) {
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Index definition is not valid";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefIndex = true;
 }
 
 void	ServerLocation::setCgi(std::string line)
@@ -135,6 +164,8 @@ void	ServerLocation::setCgi(std::string line)
 	unsigned int	front_limit = 0;
 	unsigned int	back_limit = 0;
 
+	if (_isDefCgi)
+		throw ThrowError("Error: CGI has been already defined");
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
 		if (line[i] == ',' || line[i] == ';')
@@ -155,6 +186,7 @@ void	ServerLocation::setCgi(std::string line)
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": cgi_extension line is empty";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefCgi = true;
 }
 
 // tendre que checkear todas las lineas que no haya un closing bracket

@@ -16,6 +16,14 @@ class ServerLocation {
 			std::string					_index; //index index.html
 			unsigned int				_autoindex; //autoindex ON
 
+			//this booleans determines if a value has been already defined or not
+			bool						_isDefMethods;
+			bool						_isDefRedirect;
+			bool						_isDefRoot;
+			bool						_isDefAutoIndex;
+			bool						_isDefIndex;
+			bool						_isDefCgi;
+
 	public:
 			ServerLocation( void );
 			ServerLocation( ServerLocation const &obj );

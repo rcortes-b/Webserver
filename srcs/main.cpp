@@ -1,4 +1,5 @@
 //include headers here
+#include "../includes/SimpleSocket.hpp"
 #include "../includes/ServerConfig.hpp"
 #include "../includes/ServerLocation.hpp"
 #include "../includes/ServerRequests.hpp"
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
 		std::cerr << "Error: " << e.what() << std::endl;
 	}
 	//parse file
-	try
+	/*try
 	{
 		
 	}
@@ -61,5 +62,5 @@ int main(int argc, char **argv)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
-	}
+	}*/
 }

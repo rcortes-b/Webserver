@@ -27,6 +27,17 @@ class ServerConfig {
 			std::vector<std::string>	_index_file;
 			unsigned int				_autoindex;
 			// (...)
+
+			//this booleans determines if a value has been already defined or not
+			bool						_isDefPort;
+			bool						_isDefHost;
+			bool						_isDefServerName;
+			bool						_isDefErrorPage;
+			bool						_isDefMaxSize;
+			bool						_isDefRoot;
+			bool						_isDefIndex;
+			bool						_isDefAutoIndex;
+
 	public:
 			ServerConfig( void );
 			ServerConfig( ServerConfig const &obj );
