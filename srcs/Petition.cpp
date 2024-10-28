@@ -43,6 +43,11 @@ void	Petition::setProtocol(std::string protocol)
 	this->protocol = protocol;
 }
 
+void	Petition::setType(std::string type)
+{
+	this->type = type;
+}
+
 void	Petition::setHeaders(std::string headers)
 {
 	this->headers = headers;
@@ -56,4 +61,9 @@ std::string Petition::getPath(void)
 std::string Petition::getMethod(void)
 {
 	return (this->method);
+}
+
+std::string Petition::getType(void)
+{
+	return (this->type);
 }

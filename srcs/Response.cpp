@@ -108,10 +108,15 @@ void Response::handlePath(std::string path)
 {
 	int len = path.length();
 
-	if(len > 0 && (path == "/"))
+	// ESTO ES EL DEFAULT UP TO CHANGE
+	if (len > 0 && path[len - 1] != '/' && path.find('.') == std::string::npos)
+		path + "/";
+
+	if(len > 0 && (path[len - 1] == '/'))
 	{
-		this->petition.setPath("/index.html");
+		this->petition.setPath(path + "index.html");
 		this->contentType = "text/html";
+		//FINS AQUI
 	}
 	else if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
 	{
@@ -157,11 +162,18 @@ void Response::handleHeaders(std::string headers)
 	if ((start = headers.find("Content-Length:")) != std::string::npos)
 	{
 		start =+ 15;
-		if ((end = headers.find("\r\n")) != std::string::npos)
+		if ((end = headers.find("\r\n")) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 		// PLACEHOLDER PARA MAXIMO TAMANY BODY
 		if (std::stoi(headers.substr(start, end)) > MAX_BODYSIZE)
 			this->setBadThrow("406", "Not Acceptable");
+	}
+	if ((start = headers.find("Content-Type:")) != std::string::npos)
+	{
+		start =+ 13;
+		if ((end = headers.find("\r\n")) == std::string::npos)
+			this->setBadThrow("400", "Bad Request");
+		this->petition.setType(headers.substr(start, end));
 	}
 	this->petition.setHeaders(headers);
 }
@@ -229,6 +241,7 @@ void Response::sendResponseMsg(int socketFd)
 			}
 			else if (method == "POST")
 			{
+				// EL POST SE TIENE QUE MEJORAR
 				int fdPath;
 
 				if ((fdPath = open(path, O_CREAT | O_NONBLOCK | O_EXCL)) < 0)

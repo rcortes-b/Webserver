@@ -13,6 +13,7 @@ private:
 	std::string method;
 	std::string path;
 	std::string protocol;
+	std::string type;
 	std::string headers;
 public:
 	Petition();
@@ -23,7 +24,9 @@ public:
 	void setMethod(std::string method);
 	void setPath(std::string path);
 	void setProtocol(std::string protocol);
+	void setType(std::string type);
 	void setHeaders(std::string headers);
 	std::string getPath(void);
 	std::string getMethod(void);
+	std::string getType(void);
 };
