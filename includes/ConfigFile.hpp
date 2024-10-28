@@ -23,7 +23,9 @@ bool	get_multiple_values(std::string &line, std::vector<std::string> &vector);
 bool	get_AutoIndex(std::string &line, unsigned int &autoindex);
 bool	check_ports(std::vector<std::string> &vector);
 
-std::string	numToStr(unsigned int num);
+std::string		numToStr(unsigned int num);
+unsigned long	strToulNum(std::string str);
+int				strToNum(std::string str);
 
 class ThrowError : public std::exception {
 	private:

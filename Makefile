@@ -4,18 +4,15 @@ CC = c++
 FLAGS = -Wall -Wextra -Werror -std=c++98 -g
 RM = rm -rf
 
-HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp \
+HEAD = includes/ServerConfig.hpp includes/ConfigFile.hpp \
 		includes/SimpleSocket.hpp includes/Response.hpp \
-		includes/Petition.hpp
-SRCS = srcs/main.cpp \
-		srcs/ServerConfig.cpp srcs/ServerRequests.cpp \
+		includes/Petition.hpp includes/ServerLocation.hpp
+SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
+		srcs/ServerConfig.cpp srcs/ServerLocation.cpp \
 		srcs/connections.cpp srcs/SimpleSocket.cpp \
 		srcs/Response.cpp srcs/Petition.cpp \
-		srcs/petition_handler.cpp
+		srcs/petitions_handler.cpp
     
-HEAD = includes/ServerConfig.hpp includes/ServerRequests.hpp includes/ConfigFile.hpp includes/ServerLocation.hpp
-SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
-		srcs/ServerConfig.cpp srcs/ServerRequests.cpp srcs/ServerLocation.cpp
 OBJS = $(SRCS:.cpp=.o)
 DEPS = $(SRCS:.cpp=.d)
 

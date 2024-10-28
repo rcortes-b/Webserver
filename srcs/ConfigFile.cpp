@@ -200,6 +200,7 @@ bool	get_single_value(std::string &line, std::string &value)
 
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',')
 		i++;
+	std::cout << line.substr(0, i) << "\n";
 	value = line.substr(0, i);
 	if (!is_the_end(&line[i]))
 		return false;
@@ -285,4 +286,24 @@ std::string	numToStr(unsigned int num)
 
 	oss << num;
 	return oss.str();
+}
+
+unsigned long	strToulNum(std::string str)
+{
+	unsigned long	num = 0;
+
+	for (unsigned int i = 0; i < str.size(); i++) {
+		num = num * 10 + (str[i] - '0');
+	}
+	return num;
+}
+
+int	strToNum(std::string str)
+{
+	int	num = 0;
+
+	for (unsigned int i = 0; i < str.size(); i++) {
+		num = num * 10 + (str[i] - '0');
+	}
+	return num;
 }

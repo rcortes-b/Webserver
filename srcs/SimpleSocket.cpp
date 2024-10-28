@@ -1,14 +1,16 @@
 # include "../includes/SimpleSocket.hpp"
 # include "../includes/Response.hpp"
+# include "../includes/ConfigFile.hpp"
 
 SimpleSocket::SimpleSocket()
 {
 	this->serverSocket = -1;
-	this->addrinfo = nullptr;
+	this->addrinfo = NULL;
 }
 
 SimpleSocket::SimpleSocket(std::string port)
 {
+	(void)port; //what is this
 }
 
 void	SimpleSocket::setSocket(std::string port)
@@ -93,18 +95,19 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition)
 		return (2);
 	std::string str_buffer(buffer);
 	petition.append(str_buffer);
-	size_t token = -1;
+	//int token = -1; what is this
 
 	if (petition.find("\r\n\r\n") != std::string::npos)
 		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd))
 			return (1);
 		else
 			return (2);
-	else if (petition.find("\n\n") != std::string::npos)
+	else if (petition.find("\n\n") != std::string::npos) {
 		if (SimpleSocket::readBody(petition, "\n\n", clientFd))
 			return (1);
 		else
 			return (2);
+	}
 
 	std::cout << "AFTER READ PETICION" << '\n';
 	return (0);
@@ -131,7 +134,7 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 		start = start + 15;
 		if ((end = header.find("\r\n")) == std::string::npos && (end = header.find("\n")) == std::string::npos)
 			return (1);
-		content_len = std::stoul(header.substr(start, end));
+		content_len = strToulNum(header.substr(start, end)); //std::stoul(header.substr(start, end)); puede llegar un numero negativo o algun error?? la custom func para sustituir stoul no contemple errores
 	}
 
 	char buffer[content_len + 1];
@@ -154,7 +157,7 @@ int	SimpleSocket::getServerSocket(void) const
 void SimpleSocket::clearData(void)
 {
 	std::cout << "CLEANING SOCKET" << '\n';
-	if (this->addrinfo != nullptr)
+	if (this->addrinfo != NULL)
 		freeaddrinfo(this->addrinfo);
 	if (this->serverSocket != -1)
 		close(this->serverSocket);

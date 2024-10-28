@@ -2,6 +2,9 @@
 # define SERVERLOCATION_HPP
 
 # include "ConfigFile.hpp"
+# include "ServerConfig.hpp"
+
+class ServerConfig;
 
 void	parse_location(std::fstream &file, std::string line, ServerConfig &server);
 

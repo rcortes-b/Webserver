@@ -14,11 +14,12 @@ void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec, std::map<
 
 void	handleSignal(int sig)
 {
+	(void)sig; //what is this
 	std::cout << "\nEXIT SERVER" << '\n';
 	terminate_sig = true;
 }
 
-int	main(void)
+void	connectServer(void)
 {
 	std::cout << "START" << '\n';
 	std::signal(SIGINT, handleSignal);
@@ -37,12 +38,13 @@ int	main(void)
 		for (it_strvec it = test_ports.begin(); it != test_ports.end(); it++)
 		{
 			socket.setSocket(*it);
+
 			socketsVec.push_back(socket);
 		}
 
-		int	serverSocket;
+		//int	serverSocket; what is this
 		t_epolle events[MAX_CONNECTIONS];
-		size_t event_count;
+		int event_count;
 		int epoll_fd = epoll_create(MAX_CONNECTIONS);
 		if (epoll_fd < 0)
 			throw SysError();
@@ -72,7 +74,7 @@ int	main(void)
 				errorHandling(epoll_fd, socketsVec, listeningSockets);
 			std::cout << "EPOLL FOUND! count: " << event_count << '\n';
 
-			for (size_t i = 0; i < event_count; i++)
+			for (int i = 0; i < event_count; i++)
 			{
 				std::cout << events[i].data.fd << '\n';
 				it_socvec it;
@@ -139,6 +141,4 @@ int	main(void)
 	{
 		std::cerr << e.what() << '\n';
 	}
-	
-	return (0);
 }

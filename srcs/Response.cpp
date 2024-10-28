@@ -1,4 +1,5 @@
 # include "../includes/Response.hpp"
+# include "../includes/ConfigFile.hpp"
 
 Response::Response()
 {
@@ -53,7 +54,7 @@ void	Response::setUp(std::string petition)
 {
 	int token;
 	
-	if ((token = petition.find("\r\n")) == std::string::npos)
+	if (((const unsigned long)(token = petition.find("\r\n"))) == std::string::npos)
 		this->setBadThrow("400", "Bad Request");
 	std::string statusLine = petition.substr(0, token + 2);
 	
@@ -63,7 +64,7 @@ void	Response::setUp(std::string petition)
 		from = 0;
 		if (i == 0)
 		{
-			if ((token = statusLine.find(" ")) == std::string::npos)
+			if (((const unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string method = statusLine.substr(from, token);
@@ -72,7 +73,7 @@ void	Response::setUp(std::string petition)
 		}
 		else if (i == 1)
 		{
-			if ((token = statusLine.find(" ")) == std::string::npos)
+			if (((const unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string path = statusLine.substr(from, token);
@@ -81,16 +82,16 @@ void	Response::setUp(std::string petition)
 		}
 		else if (i == 2)
 		{
-			if ((token = statusLine.find("\r\n")) == std::string::npos)
+			if (((const unsigned long)(token = statusLine.find("\r\n"))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string protocol = statusLine.substr(from, token);
 			this->handleProtocol(protocol);
-			token =+ 2;
+			token += 2;
 			statusLine = statusLine.substr(token);
 		}
 	}
-	if ((from = statusLine.find("\0")) == std::string::npos)
+	if (((const unsigned long)(from = statusLine.find("\0"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 	
 	std::string headers = petition.substr(from);
@@ -154,13 +155,13 @@ void Response::handleHeaders(std::string headers)
 	// SI AL FINAL SE TIENE QUE HACER ALGO CON LOS HEADERS PUES YA SE VERA
 	int start;
 	int end;
-	if ((start = headers.find("Content-Length:")) != std::string::npos)
+	if (((const unsigned long)(start = headers.find("Content-Length:"))) != std::string::npos)
 	{
-		start =+ 15;
-		if ((end = headers.find("\r\n")) != std::string::npos)
+		start += 15;
+		if (((const unsigned long)(end = headers.find("\r\n"))) != std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 		// PLACEHOLDER PARA MAXIMO TAMANY BODY
-		if (std::stoi(headers.substr(start, end)) > MAX_BODYSIZE)
+		if (strToNum(headers.substr(start, end)) > MAX_BODYSIZE)
 			this->setBadThrow("406", "Not Acceptable");
 	}
 	this->petition.setHeaders(headers);
@@ -276,7 +277,7 @@ void	Response::doGet(char *path, struct stat &stat_buf, char *buffer_body)
 			if ((readedSize = read(fdPath, buffer_body, stat_buf.st_blksize)) < 0)
 				this->setBadThrow("500", "Internal Server Error");
 		}
-		tmp_statSize =- readedSize;
+		tmp_statSize -= readedSize;
 	}
 	close(fdPath);
 }

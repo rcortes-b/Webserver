@@ -2,7 +2,6 @@
 #include "../includes/SimpleSocket.hpp"
 #include "../includes/ServerConfig.hpp"
 #include "../includes/ServerLocation.hpp"
-#include "../includes/ServerRequests.hpp"
 #include "../includes/ConfigFile.hpp"
 
 /*
@@ -51,7 +50,7 @@ int main(int argc, char **argv)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
-	}
+	}*/
 	
 	//start connections
 	try
@@ -62,5 +61,5 @@ int main(int argc, char **argv)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
-	}*/
+	}
 }

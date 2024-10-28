@@ -66,6 +66,9 @@ public:
 	static int	readBody(std::string &petition, std::string token, int clientFd);
 	void clearData(void);
 	int	getServerSocket(void) const;
+
 };
+
+void	connectServer( void );
 
 typedef std::vector<SimpleSocket>::iterator it_socvec;
