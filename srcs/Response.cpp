@@ -45,7 +45,7 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	this->protocol = "HTTP/1.1";
 	this->statusCode = statusCode;
 	this->statusMsg = statusMsg;
-	this->contentType = "";
+	this->contentType = "text/plain";
 	throw BadPetition();
 }
 
@@ -169,10 +169,10 @@ void Response::handleHeaders(std::string headers)
 		if (strToNum(headers.substr(start, end)) > MAX_BODYSIZE)
 			this->setBadThrow("406", "Not Acceptable");
 	}
-	if ((start = headers.find("Content-Type:")) != std::string::npos)
+	if (((const unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
 	{
-		start =+ 13;
-		if ((end = headers.find("\r\n")) == std::string::npos)
+		start += 13;
+		if (((const unsigned long)(end = headers.find("\r\n"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 		this->petition.setType(headers.substr(start, end));
 	}
