@@ -1,10 +1,13 @@
 #ifndef SERVERCONFIG_HPP
 # define SERVERCONFIG_HPP
 
+# include "ServerLocation.hpp"
 # include <iostream>
 # include <stdbool.h>
 # include <cstring>
 # include <vector>
+
+class ServerLocation;
 
 enum	e_autoindex {
 	NONE,
@@ -12,23 +15,28 @@ enum	e_autoindex {
 	OFF
 };
 
-class serverLocation {
-	private:
-	public:
-};
-
 class ServerConfig {
 	private:
-			std::vector<serverLocation>	_location;
+			std::vector<ServerLocation>	_location;
 			std::vector<std::string>	_port;
 			std::string					_host;
-			std::string					_server_name;
-			std::string					_error_page;
+			std::vector<std::string>	_server_name;
+			std::vector<std::string>	_error_page;
 			std::string					_max_size;
 			std::string					_root;
-			std::string					_index_file;
+			std::vector<std::string>	_index_file;
 			unsigned int				_autoindex;
 			// (...)
+
+			//this booleans determines if a value has been already defined or not
+			bool						_isDefPort;
+			bool						_isDefHost;
+			bool						_isDefServerName;
+			bool						_isDefErrorPage;
+			bool						_isDefMaxSize;
+			bool						_isDefRoot;
+			bool						_isDefIndex;
+			bool						_isDefAutoIndex;
 
 	public:
 			ServerConfig( void );
@@ -45,6 +53,9 @@ class ServerConfig {
 			void	setRoot( std::string line);
 			void	setIndexFile( std::string line);
 			void	setAutoIndex( std::string line);
+
+			std::vector<ServerLocation>	&getLocation( void );
+			std::vector<std::string>	&getPort( void );
 
 };
 
