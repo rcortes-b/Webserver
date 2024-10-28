@@ -171,7 +171,8 @@ bool	is_valid_method(std::string const &method)
 									"DELETE"
 											};
 	for (unsigned int it = 0; it < 3; it++) {
-		if (valid_method[it].compare(method))
+		std::cout << valid_method[it] << " a " << method << "limit" << std::endl;//del
+		if (valid_method[it] == method)
 			return true;
 	}
 	return false;
@@ -179,15 +180,17 @@ bool	is_valid_method(std::string const &method)
 
 bool	is_valid_extension(std::string const &extension)
 {
-	std::string	valid_extension[6] = { "html",
+	std::string	valid_extension[7] = { "html",
 									"css",
 									"jpg",
 									"js",
 									"py",
-									"php"
+									"php",
+									"sh"
 											};
-	for (unsigned int it = 0; it < 3; it++) {
-		if (valid_extension[it].compare(extension))
+	for (unsigned int it = 0; it < 7; it++) {
+		std::cout << valid_extension[it] << " " << extension << std::endl;//del
+		if (valid_extension[it] == extension)
 			return true;
 	}
 	return false;
@@ -196,12 +199,16 @@ bool	is_valid_extension(std::string const &extension)
 
 bool	get_single_value(std::string &line, std::string &value)
 {
+	unsigned int	front = 0;
 	unsigned int	i = 0;
 
-	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',')
+	while (i < line.size() && std::isspace(line[i]))
+		i++;
+	front = i;
+	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
 	std::cout << line.substr(0, i) << "\n";
-	value = line.substr(0, i);
+	value = line.substr(front, i);
 	if (!is_the_end(&line[i]))
 		return false;
 	return true;
@@ -228,11 +235,19 @@ bool	is_the_end(std::string line)
 	return true;
 }
 
+void	update_backlimit(std::string &line, unsigned int pos, unsigned int &back_limit)
+{
+	if (pos > 0 && ((std::isspace(line[pos]) && std::isalnum(line[pos - 1]))
+		|| (line[pos] == ',' && std::isalnum(line[pos - 1]))
+		|| (line[pos] == ';' && std::isalnum(line[pos - 1]))))
+		back_limit = pos;
+}
+
 bool	get_AutoIndex(std::string &line, unsigned int &autoindex)
 {
 	unsigned int	i = 0;
 
-	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',')
+	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
 	if (line.substr(0, i).compare("ON"))
 		autoindex = ON;

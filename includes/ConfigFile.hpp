@@ -23,6 +23,8 @@ bool	get_multiple_values(std::string &line, std::vector<std::string> &vector);
 bool	get_AutoIndex(std::string &line, unsigned int &autoindex);
 bool	check_ports(std::vector<std::string> &vector);
 
+void	update_backlimit(std::string &line, unsigned int pos, unsigned int &back_limit);
+
 std::string		numToStr(unsigned int num);
 unsigned long	strToulNum(std::string str);
 int				strToNum(std::string str);

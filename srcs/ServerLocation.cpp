@@ -95,19 +95,21 @@ void	ServerLocation::setMethods(std::string line)
 
 	if (_isDefMethods)
 		throw ThrowError("Error: Methods has been already defined");
+	std::cout << "Line: " << line << "\n";
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
+		std::cout << line[i] << " ";
+		update_backlimit(line, i, back_limit);
 		if (line[i] == ',' || line[i] == ';')
 		{
-			if (is_valid_method(line.substr(front_limit, back_limit)))
-				_methods.push_back(line.substr(front_limit, back_limit));
+			std::cout << "method nums" << front_limit << " " << back_limit << std::endl;
+			if (is_valid_method(line.substr(front_limit, back_limit - front_limit)))
+				_methods.push_back(line.substr(front_limit, back_limit - front_limit));
 			else {
 				custom_msg = "Error in location nº" + numToStr(location_amount) +": Method is not valid";
 				throw ThrowError(static_cast<std::string const>(custom_msg));
 			}
 		}
-		else if (i > 0 && std::isspace(line[i]) && std::isalnum(line[i - 1]))
-			back_limit = i;
 		else if ((i == 0 && std::isalnum(line[i])) || (i > 0 && std::isspace(line[i - 1]) && std::isalnum(line[i])))
 			front_limit = i;
 	}
@@ -172,17 +174,16 @@ void	ServerLocation::setCgi(std::string line)
 		throw ThrowError("Error: CGI has been already defined");
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
+		update_backlimit(line, i, back_limit);
 		if (line[i] == ',' || line[i] == ';')
 		{
-			if (is_valid_extension(line.substr(front_limit, back_limit)))
-				_cgi_extension.push_back(line.substr(front_limit, back_limit));
+			if (is_valid_extension(line.substr(front_limit, back_limit - front_limit)))
+				_cgi_extension.push_back(line.substr(front_limit, back_limit - front_limit));
 			else {
 			custom_msg = "Error in location nº" + numToStr(location_amount) +": CGI extension definition is not valid";
 			throw ThrowError(static_cast<std::string const>(custom_msg));
+			}
 		}
-		}
-		else if (i > 0 && std::isspace(line[i]) && std::isalnum(line[i - 1]))
-			back_limit = i;
 		else if ((i == 0 && std::isalnum(line[i])) || (i > 0 && std::isspace(line[i - 1]) && std::isalnum(line[i])))
 			front_limit = i;
 	}
@@ -196,7 +197,7 @@ void	ServerLocation::setCgi(std::string line)
 // tendre que checkear todas las lineas que no haya un closing bracket
 	//primera linea se usara setRoute, ya que se supone que la primera tendra la ruta donde aplicar lo definido y un open bracket
 
-static void	setLocation(std::string key, ServerLocation &location)
+static void	setLocation(std::string key, ServerLocation &location, std::string line)
 {
 	std::string key_options[6] = {
 		"allow_methods",
@@ -212,23 +213,23 @@ static void	setLocation(std::string key, ServerLocation &location)
 			switch (i)
 			{
 			case 0:
-				location.setMethods(key);
-				break;
+				location.setMethods(line);
+				return ;
 			case 1:
-				location.setCgi(key);
-				break;
+				location.setCgi(line);
+				return ;
 			case 2:
-				location.setRedirect(key);
-				break;
+				location.setRedirect(line);
+				return ;
 			case 3:
-				location.setRoot(key);
-				break;
+				location.setRoot(line);
+				return ;
 			case 4:
-				location.setIndex(key);
-				break;
+				location.setIndex(line);
+				return ;
 			case 5:
-				location.setAutoIndex(key);
-				break;
+				location.setAutoIndex(line);
+				return ;
 			}
 		}
 	}
@@ -258,9 +259,10 @@ void	parse_location(std::fstream &file, std::string line, ServerConfig &server)
 				}
 			}
 			location_amount++;
+			server.getLocation().push_back(location);
+			break ;
 		}
 		else
-			setLocation(line.substr(key_pos, i - key_pos), location);
+			setLocation(line.substr(key_pos, i - key_pos), location, &line[i]); /* aqui esta el error Ramon */
 	}
-	server.getLocation().push_back(location);
 }

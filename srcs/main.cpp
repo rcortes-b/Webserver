@@ -39,8 +39,9 @@ int main(int argc, char **argv)
 	try {
 		std::string file = argv[1];
 		parse_file(file);
-	} catch (ThrowError &e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		connectServer();
+	} catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
 	}
 	//parse file
 	/*try
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
 	}*/
 	
 	//start connections
-	try
+	/*try
 	{
 		//YA VEREMOS QUE PASAR COMO ARGUEMENTO
 		connectServer();
@@ -61,5 +62,5 @@ int main(int argc, char **argv)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
-	}
+	}*/
 }

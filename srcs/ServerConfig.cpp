@@ -119,7 +119,7 @@ void	ServerConfig::setAutoIndex(std::string line)
 {
 	if (_isDefAutoIndex)
 		throw ThrowError("Error: Autoindex has been already defined");
-	if (get_AutoIndex(line, _autoindex))
+	if (!get_AutoIndex(line, _autoindex))
 		throw ThrowError("Error: Autoindex is not valid");
 	_isDefAutoIndex = true;
 }

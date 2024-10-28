@@ -1,5 +1,4 @@
 .vscode
 webserv
-testing.conf
 srcs/*.o
 srcs/*.d
