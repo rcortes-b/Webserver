@@ -57,11 +57,15 @@ void	ServerLocation::setRoute(std::string line)
 	limit = i;
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != '{')
 		i++;
-	if (i == line.size()) {
+	if (i == line.size() || i == limit) {
 		custom_msg = "Error in location n" + numToStr(location_amount) +": Location route is wrong defined";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	std::cout << limit << " " << i << " " << line.substr(limit, i - limit) << " " << line.size() <<"\n";
+	std::cout << "Address of _route: " << &_route << "\n";
+
 	_route = line.substr(limit, i - limit);
+	std::cout << "made it \n";
 	if (line[i] == '{') {
 		i += 1;
 		while (i < line.size() && std::isspace(line[i]))
@@ -192,7 +196,7 @@ void	ServerLocation::setCgi(std::string line)
 // tendre que checkear todas las lineas que no haya un closing bracket
 	//primera linea se usara setRoute, ya que se supone que la primera tendra la ruta donde aplicar lo definido y un open bracket
 
-static void	setLocation(std::string key, ServerConfig &server)
+static void	setLocation(std::string key, ServerLocation &location)
 {
 	std::string key_options[6] = {
 		"allow_methods",
@@ -208,22 +212,22 @@ static void	setLocation(std::string key, ServerConfig &server)
 			switch (i)
 			{
 			case 0:
-				server.getLocation().back().setMethods(key);
+				location.setMethods(key);
 				break;
 			case 1:
-				server.getLocation().back().setCgi(key);
+				location.setCgi(key);
 				break;
 			case 2:
-				server.getLocation().back().setRedirect(key);
+				location.setRedirect(key);
 				break;
 			case 3:
-				server.getLocation().back().setRoot(key);
+				location.setRoot(key);
 				break;
 			case 4:
-				server.getLocation().back().setIndex(key);
+				location.setIndex(key);
 				break;
 			case 5:
-				server.getLocation().back().setAutoIndex(key);
+				location.setAutoIndex(key);
 				break;
 			}
 		}
@@ -236,10 +240,11 @@ static void	setLocation(std::string key, ServerConfig &server)
 
 void	parse_location(std::fstream &file, std::string line, ServerConfig &server)
 {
+	ServerLocation	location;
 	unsigned int	i = 0;
 	unsigned int	key_pos = 0;
-
-	server.getLocation().back().setRoute(line);
+	
+	location.setRoute(line);
 	while (std::getline(file, line)) {
 		for (i = 0; i < line.size() && std::isspace(line[i]); i++);
 		key_pos = i;
@@ -255,6 +260,7 @@ void	parse_location(std::fstream &file, std::string line, ServerConfig &server)
 			location_amount++;
 		}
 		else
-			setLocation(line.substr(key_pos, i - key_pos), server);
+			setLocation(line.substr(key_pos, i - key_pos), location);
 	}
+	server.getLocation().push_back(location);
 }

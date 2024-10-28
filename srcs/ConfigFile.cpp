@@ -99,7 +99,7 @@ static void parse_lines(std::string const &line, std::fstream &file, ServerConfi
 				}
 			}
 			if (!counter)
-				parse_location(file, line, server);
+				parse_location(file, &line[i + keys[counter].size()], server);
 			else
 				setConfigValue(&line[i + keys[counter].size()], server, counter);
 			for (std::vector<std::string>::iterator it = server.getPort().begin(); it != server.getPort().end(); it++) {
