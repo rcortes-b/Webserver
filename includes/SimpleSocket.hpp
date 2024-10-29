@@ -14,6 +14,7 @@
 # include <fcntl.h>
 # include <map>
 # include <vector>
+# include <list>
 # include "ServerConfig.hpp"
 
 //placeholders
@@ -26,7 +27,6 @@ typedef struct sockaddr_in	t_sockaddr_in;
 typedef struct sockaddr t_sockaddr;
 typedef struct addrinfo	t_addrinfo;
 typedef std::vector<std::string>::iterator it_strvec;
-typedef std::map<int, std::string>::iterator it_lstsock;
 typedef struct epoll_event t_epolle;
 
 
@@ -55,6 +55,7 @@ class SimpleSocket
 private:
 	int serverSocket;
 	t_addrinfo *addrinfo;
+	ServerConfig *server;
 	
 public:
 	SimpleSocket();
@@ -64,9 +65,11 @@ public:
 	~SimpleSocket();
 
 	void setSocket(std::string port, std::string host);
+	void setServer(ServerConfig *server);
+	ServerConfig *getServer(void) const;
 	int acceptConnection(void);
-	static int	readPetition(int clientFd, std::string &petition);
-	static int	readBody(std::string &petition, std::string token, int clientFd);
+	static int	readPetition(int clientFd, std::string &petition, ServerConfig &server);
+	static int	readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server);
 	void clearData(void);
 	int	getServerSocket(void) const;
 
@@ -74,4 +77,4 @@ public:
 
 void	connectServer( std::vector<ServerConfig> &server );
 
-typedef std::vector<SimpleSocket>::iterator it_socvec;
+typedef std::map<int, SimpleSocket>::iterator it_socmap;

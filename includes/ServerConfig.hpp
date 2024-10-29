@@ -66,4 +66,6 @@ class ServerConfig {
 
 };
 
+typedef std::vector<ServerConfig>::iterator it_servec;
+
 #endif

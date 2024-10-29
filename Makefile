@@ -6,11 +6,13 @@ RM = rm -rf
 
 HEAD = includes/ServerConfig.hpp includes/ConfigFile.hpp \
 		includes/SimpleSocket.hpp includes/Response.hpp \
-		includes/Petition.hpp includes/ServerLocation.hpp
+		includes/Petition.hpp includes/ServerLocation.hpp \
+		includes/ListeningSocket.hpp
 SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
 		srcs/ServerConfig.cpp srcs/ServerLocation.cpp \
 		srcs/connections.cpp srcs/SimpleSocket.cpp \
 		srcs/Response.cpp srcs/Petition.cpp \
+		srcs/ListeningSocket.cpp \
 		srcs/petitions_handler.cpp
     
 OBJS = $(SRCS:.cpp=.o)

@@ -1,14 +1,15 @@
 # include "../includes/SimpleSocket.hpp"
 # include "../includes/ServerConfig.hpp"
+# include "../includes/ListeningSocket.hpp"
 
 bool terminate_sig = false;
 
-void	errorHandling(int epoll_fd, std::vector<SimpleSocket> socketsVec, std::map<int, std::string> listeningSockets)
+void	errorHandling(int epoll_fd, std::map<int, SimpleSocket> socketsMap, std::map<int, ListeningSocket> listeningMap)
 {
 	close(epoll_fd);
-	for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
-		(*it).clearData();
-	for (it_lstsock it = listeningSockets.begin(); it != listeningSockets.end(); it++)
+	for (it_socmap it = socketsMap.begin(); it != socketsMap.end(); it++)
+		it->second.clearData();
+	for (it_lstsocmap it = listeningMap.begin(); it != listeningMap.end(); it++)
 		close(it->first);
 	throw SysError();
 }
@@ -26,22 +27,24 @@ void	connectServer(std::vector<ServerConfig> &server)
 	std::signal(SIGINT, handleSignal);
 	try
 	{
-		std::map<int, std::string> listeningSockets;
+		//std::map<int, std::string> listeningSockets;
+		std::map<int, ListeningSocket> listeningMap;
+		std::map<int, SimpleSocket> socketsMap;
 		//EL WHILE GENERAL DE SERVERS DEBE SER AQUI server[i] no server[0]
-		/*std::vector<std::string> test_ports;
-		test_ports.push_back("8080");
-		test_ports.push_back("1024");*/
-
-		std::vector<SimpleSocket> socketsVec;
-		SimpleSocket socket;
-		std::string serverHost = server[0].getHost();
-		std::vector<std::string> serverPorts = server[0].getPort();
-		for (it_strvec it = serverPorts.begin(); it != serverPorts.end(); it++)
+		for (it_servec it = server.begin(); it != server.end(); it++)
 		{
-			socket.setSocket(*it, serverHost);
+			SimpleSocket socket;
+			std::string serverHost = (*it).getHost();
+			std::vector<std::string> serverPorts = (*it).getPort();
+			socket.setServer(&(*it));
+			for (it_strvec it = serverPorts.begin(); it != serverPorts.end(); it++)
+			{
+				socket.setSocket(*it, serverHost);
 
-			socketsVec.push_back(socket);
+				socketsMap[socket.getServerSocket()] = socket;
+			}
 		}
+		
 
 		t_epolle events[MAX_CONNECTIONS];
 		int event_count;
@@ -49,16 +52,17 @@ void	connectServer(std::vector<ServerConfig> &server)
 		if (epoll_fd < 0)
 			throw SysError();
 		
-		for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
+		for (it_socmap it = socketsMap.begin(); it != socketsMap.end(); it++)
 		{
 			t_epolle event;
 			event.events = EPOLLIN;
-			event.data.fd = (*it).getServerSocket();
-			std::cout << (*it).getServerSocket() << '\n';
+			event.data.fd = it->second.getServerSocket();
+			//event.data.ptr = (*it).getServer();
+			std::cout << "fd: " << it->second.getServerSocket() << '\n';
 			if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
 			{
 				std::cout << "Error on fd: " << event.data.fd << '\n';
-				errorHandling(epoll_fd, socketsVec, listeningSockets);
+				errorHandling(epoll_fd, socketsMap, listeningMap);
 			}
 		}
 		while (!terminate_sig)
@@ -71,69 +75,52 @@ void	connectServer(std::vector<ServerConfig> &server)
 			if (terminate_sig)
 				break;
 			if (event_count == -1)
-				errorHandling(epoll_fd, socketsVec, listeningSockets);
+				errorHandling(epoll_fd, socketsMap, listeningMap);
 			std::cout << "EPOLL FOUND! count: " << event_count << '\n';
 
 			for (int i = 0; i < event_count; i++)
 			{
 				std::cout << events[i].data.fd << '\n';
-				it_socvec it;
-				for (it = socketsVec.begin(); it != socketsVec.end(); it++)
-					if (events[i].data.fd == (*it).getServerSocket())
-						break;
-				if (it != socketsVec.end())
+				if (socketsMap.find(events[i].data.fd) != socketsMap.end())
 				{
 					t_epolle event;
 					event.events = EPOLLIN;
-					event.data.fd = (*it).acceptConnection();
-					listeningSockets[event.data.fd] = "";
+					event.data.fd = socketsMap[events[i].data.fd].acceptConnection();
+					listeningMap[event.data.fd].setBuffer("");
+					listeningMap[event.data.fd].setServer(socketsMap[events[i].data.fd].getServer());
 					int flags = fcntl(event.data.fd, F_GETFL, 0);
 					flags |= O_NONBLOCK;
 					if (fcntl(event.data.fd, F_SETFL, flags) < 0)
-						errorHandling(epoll_fd, socketsVec, listeningSockets);
+						errorHandling(epoll_fd, socketsMap, listeningMap);
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
-						errorHandling(epoll_fd, socketsVec, listeningSockets);
+						errorHandling(epoll_fd, socketsMap, listeningMap);
 				}
 				else
-				{
-					// HE D'AFEGIR EL CLEINT A EPOLL YA QUE NO ES POT FER WHILE DEL RECV 
-					// SETTAR EL FD DE CLINET NON_BLOCKING -->>
-					// int flags = fcntl(socket, F_GETFL, 0);
-					// flags |= O_NONBLOCK;
-					// if (fcntl(socket, F_SETFL, flags) < 0)
-					// 	SysError();
-					// GUARDAR EL BUFFER DE CADA CLIENT
-					// poster fer-ho amb std::strings es mes facil??
-					
+				{	
 					int clientFd = events[i].data.fd;
-					// TEST CREO QUE NO ES NECESARIO
-					if (listeningSockets.find(clientFd) == listeningSockets.end())
-					{
-						std::cout << clientFd << " NOT FOUND!" << '\n';
-					}
-					int status = SimpleSocket::readPetition(clientFd, listeningSockets[clientFd]);
+					int status = SimpleSocket::readPetition(clientFd, listeningMap[clientFd].getBuffer(), *(listeningMap[clientFd].getServer()));
 					if (status == 1) // ERROR
 					{
-						listeningSockets.erase(clientFd);
+						listeningMap.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))
-							errorHandling(epoll_fd, socketsVec, listeningSockets);
+							errorHandling(epoll_fd, socketsMap, listeningMap);
 						close(clientFd);
-						errorHandling(epoll_fd, socketsVec, listeningSockets);
+						errorHandling(epoll_fd, socketsMap, listeningMap);
 					}
 					else if (status == 2) // CLOSED CONNECTION
 					{
-						listeningSockets.erase(clientFd);
+						listeningMap.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))
-							errorHandling(epoll_fd, socketsVec, listeningSockets);
+							errorHandling(epoll_fd, socketsMap, listeningMap);
 						close(clientFd);
 					}
 				}
 			}
 		}
 		close(epoll_fd);
-		for (it_socvec it = socketsVec.begin(); it != socketsVec.end(); it++)
-			(*it).clearData();
-		for (it_lstsock it = listeningSockets.begin(); it != listeningSockets.end(); it++)
+		for (it_socmap it = socketsMap.begin(); it != socketsMap.end(); it++)
+			it->second.clearData();
+		for (it_lstsocmap it = listeningMap.begin(); it != listeningMap.end(); it++)
 			close(it->first);
 		
 	}

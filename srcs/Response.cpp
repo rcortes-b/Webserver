@@ -224,7 +224,6 @@ void Response::sendResponseMsg(int socketFd)
 	std::memset(buffer_body, '\0', MAX_BODYSIZE);
 	struct stat stat_buf;
 	std::string method = this->petition.getMethod();
-	// PLACEHOLDER ROOT
 	std::string root = this->server.getRoot();
 	char *path = const_cast<char *>(root.append(this->petition.getPath()).c_str());
 	

@@ -2,10 +2,10 @@
 # include "../includes/ServerConfig.hpp"
 
 // TEMPOAL VARIABLES
-# define MAX_BODYSIZE 500
+# define MAX_BODYSIZE 2000
 # define MAX_HEADERSIZE 500
-# define ROOT "/home/mvallhon/Documents/C_Cursus/test_webserv_files"
-void	handlePetition(std::string petition, int socketFd);
+
+void	handlePetition(std::string petition, int socketFd, ServerConfig &server);
 
 class BadPetition: public std::exception
 {

@@ -47,16 +47,28 @@ void	SimpleSocket::setSocket(std::string port, std::string host)
 		SysError();
 }
 
+void SimpleSocket::setServer(ServerConfig *server)
+{
+	this->server = server;
+}
+
+ServerConfig *SimpleSocket::getServer(void) const
+{
+	return (this->server);
+}
+
 SimpleSocket::SimpleSocket(const SimpleSocket &other)
 {
 	this->serverSocket = other.serverSocket;
 	this->addrinfo = other.addrinfo;
+	this->server = other.server;
 }
 
 SimpleSocket	&SimpleSocket::operator=(const SimpleSocket &other)
 {
 	this->serverSocket = other.serverSocket;
 	this->addrinfo = other.addrinfo;
+	this->server = other.server;
 
 	return (*this);
 }
@@ -79,7 +91,7 @@ int	SimpleSocket::acceptConnection(void)
 	return (clientSocket);
 }
 
-int	SimpleSocket::readPetition(int clientFd, std::string &petition)
+int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig &server)
 {
 	std::cout << "BEFORE READ PETITION" << '\n';
 	char buffer[MAX_BUFFER_SIZE];
@@ -98,12 +110,12 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition)
 	//int token = -1; what is this
 
 	if (petition.find("\r\n\r\n") != std::string::npos)
-		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd))
+		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd, server))
 			return (1);
 		else
 			return (2);
 	else if (petition.find("\n\n") != std::string::npos) {
-		if (SimpleSocket::readBody(petition, "\n\n", clientFd))
+		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server))
 			return (1);
 		else
 			return (2);
@@ -121,7 +133,7 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition)
 	// return (2); 
 }
 
-int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd)
+int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server)
 {
 	size_t token_pos = petition.find(token);
 	std::string header = petition.substr(0, token_pos);
@@ -145,7 +157,7 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 	std::string next_body(buffer);
 	petition = header + body + next_body;
 	std::cout << "PETICION:\n" << petition << '\n';
-	//handlePetition(petition, clientFd);
+	handlePetition(petition, clientFd, server);
 	return (0);
 }
 
