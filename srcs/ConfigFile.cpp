@@ -46,35 +46,35 @@ static void	setConfigValue(std::string const &line, ServerConfig &server, unsign
 	}
 	switch (counter) {
 		case 1:
-		std::cout << "setPort in server" << std::endl;
+		//std::cout << "setPort in server" << std::endl;
 				server.setPort(&line[i]);
 				break ;
 		case 2:
-		std::cout << "setHosy in server" << std::endl;
+		//std::cout << "setHosy in server" << std::endl;
 				server.setHost(&line[i]);
 				break ;
 		case 3:
-		std::cout << "setServerName in server" << std::endl;
+		//std::cout << "setServerName in server" << std::endl;
 				server.setServerName(&line[i]);
 				break ;
 		case 4:
-		std::cout << "setErrorPage in server" << std::endl;
+		//std::cout << "setErrorPage in server" << std::endl;
 				server.setErrorPage(&line[i]);
 				break ;
 		case 5:
-		std::cout << "setMaxSize in server" << std::endl;
+		//std::cout << "setMaxSize in server" << std::endl;
 				server.setMaxSize(&line[i]);
 				break ;
 		case 6:
-		std::cout << "setRoot in server" << std::endl;
+		//std::cout << "setRoot in server" << std::endl;
 				server.setRoot(&line[i]);
 				break ;
 		case 7:
-		std::cout << "setIndexFile in server" << std::endl;
+		//std::cout << "setIndexFile in server" << std::endl;
 				server.setIndexFile(&line[i]);
 				break ;
 		case 8:
-		std::cout << "setAutoIndex in server" << std::endl;
+		//std::cout << "setAutoIndex in server" << std::endl;
 				server.setAutoIndex(&line[i]);
 				break ;
 	};
@@ -89,7 +89,6 @@ static bool parse_lines(std::string const &line, std::fstream &file, ServerConfi
 		if (!std::isspace(line[i]) && line[i] != '}')
 		{
 			key_size = get_key_size(&line[i]);
-			std::cout << "Kkeysize: " << key_size << std::endl;
 			while (++counter < KEY_AMOUNT)
 			{
 				if (!std::strncmp(&line[i], keys[counter].c_str(), key_size))
@@ -103,9 +102,6 @@ static bool parse_lines(std::string const &line, std::fstream &file, ServerConfi
 				parse_location(file, &line[i + keys[counter].size()], server);
 			else
 				setConfigValue(&line[i + keys[counter].size()], server, counter);
-			for (std::vector<std::string>::iterator it = server.getPort().begin(); it != server.getPort().end(); it++) {
-				std::cout << "This is a testing site: \n";
-				std::cout << *it <<std::endl; }
 			return true;
 		}
 		else if (line[i] == '}') {
@@ -155,8 +151,11 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 						location_amount = 0;
 						servers.push_back(iterate_server_data(line, file));
 						//this is to delete
+						std::cout << "Servers Amount: " << servers.size() << std::endl;
 						for (std::vector<ServerConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 						{
+							std::cout << "----- SERVER -----" << std::endl;
+							std::cout << "Location Size: " << (*it).getLocation().size() << std::endl;
 							for (std::vector<ServerLocation>::iterator itLoc = (*it).getLocation().begin(); itLoc != (*it).getLocation().end(); itLoc++)
 							{
 								std::cout << "----- LOCATION -----" << std::endl;
@@ -167,6 +166,7 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 								std::cout << "AutoIndex: " << (*itLoc).getAutoIndex() << std::endl;
 								for (std::vector<std::string>::iterator itMet = (*itLoc).getMethods().begin(); itMet != (*itLoc).getMethods().end(); itMet++)
 									std::cout << "Method: " << *itMet << std::endl;
+								std::cout << "CGI size: " << (*itLoc).getCgiExtension().size() << std::endl;
 								for (std::vector<std::string>::iterator itCgi = (*itLoc).getCgiExtension().begin(); itCgi != (*itLoc).getCgiExtension().end(); itCgi++)
 									std::cout << "Cgi: " << *itCgi << std::endl;
 								std::cout << "----- END LOCATION -----" << std::endl;
@@ -183,6 +183,7 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 							std::cout << "Max Size: " << (*it).getMaxSize() << std::endl;
 							std::cout << "Root: " << (*it).getRoot() << std::endl;
 							std::cout << "AutoIndex: " << (*it).getAutoIndex() << std::endl;
+							std::cout << "----- END OF SERVER -----" << std::endl;
 						}
 					}
 				}
@@ -205,7 +206,6 @@ bool	is_valid_method(std::string const &method)
 									"DELETE"
 											};
 	for (unsigned int it = 0; it < 3; it++) {
-		std::cout << valid_method[it] << " a " << method << "limit" << std::endl;//del
 		if (valid_method[it] == method)
 			return true;
 	}
@@ -223,7 +223,6 @@ bool	is_valid_extension(std::string const &extension)
 									"sh"
 											};
 	for (unsigned int it = 0; it < 7; it++) {
-		std::cout << valid_extension[it]  << valid_extension[it].size() << " " << extension << extension.size() << std::endl;//del
 		if (valid_extension[it] == extension)
 			return true;
 	}
@@ -241,7 +240,6 @@ bool	get_single_value(std::string &line, std::string &value)
 	front = i;
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
-	std::cout << line.substr(0, i) << "\n";
 	value = line.substr(front, i);
 	if (!is_the_end(&line[i]))
 		return false;
@@ -283,9 +281,9 @@ bool	get_AutoIndex(std::string &line, unsigned int &autoindex)
 
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
-	if (line.substr(0, i).compare("ON"))
+	if (line.substr(0, i) =="ON")
 		autoindex = ON;
-	else if (line.substr(0, i).compare("OFF"))
+	else if (line.substr(0, i) == "OFF")
 		autoindex = OFF;
 	else
 		return false;

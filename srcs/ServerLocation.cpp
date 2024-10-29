@@ -27,6 +27,7 @@ ServerLocation	&ServerLocation::operator=(ServerLocation const &obj)
 {
 	_route = obj._route;
 	_methods = obj._methods;
+	_cgi_extension = obj._cgi_extension;
 	_redirect = obj._redirect;
 	_root = obj._root;
 	_autoindex = obj._autoindex;
@@ -61,11 +62,7 @@ void	ServerLocation::setRoute(std::string line)
 		custom_msg = "Error in location n" + numToStr(location_amount) +": Location route is wrong defined";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
-	std::cout << limit << " " << i << " " << line.substr(limit, i - limit) << " " << line.size() <<"\n";
-	std::cout << "Address of _route: " << &_route << "\n";
-
 	_route = line.substr(limit, i - limit);
-	std::cout << "made it \n";
 	if (line[i] == '{') {
 		i += 1;
 		while (i < line.size() && std::isspace(line[i]))
@@ -95,14 +92,11 @@ void	ServerLocation::setMethods(std::string line)
 
 	if (_isDefMethods)
 		throw ThrowError("Error: Methods has been already defined");
-	std::cout << "Line: " << line << "\n";
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
-		std::cout << line[i] << " ";
 		update_backlimit(line, i, back_limit);
 		if (line[i] == ',' || line[i] == ';')
 		{
-			std::cout << "method nums" << front_limit << " " << back_limit << std::endl;
 			if (is_valid_method(line.substr(front_limit, back_limit - front_limit)))
 				_methods.push_back(line.substr(front_limit, back_limit - front_limit));
 			else {
@@ -177,11 +171,11 @@ void	ServerLocation::setCgi(std::string line)
 		update_backlimit(line, i, back_limit);
 		if (line[i] == ',' || line[i] == ';')
 		{
-			if (is_valid_extension(line.substr(front_limit, back_limit - front_limit))) {
-				_cgi_extension.push_back(line.substr(front_limit, back_limit - front_limit)); std::cout << "Look at this:  :: :  :" << line.substr(front_limit, back_limit - front_limit) << std::endl;}
+			if (is_valid_extension(line.substr(front_limit, back_limit - front_limit)))
+				_cgi_extension.push_back(line.substr(front_limit, back_limit - front_limit));
 			else {
-			custom_msg = "Error in location nº" + numToStr(location_amount) +": CGI extension definition is not valid";
-			throw ThrowError(static_cast<std::string const>(custom_msg));
+				custom_msg = "Error in location nº" + numToStr(location_amount) +": CGI extension definition is not valid";
+				throw ThrowError(static_cast<std::string const>(custom_msg));
 			}
 		}
 		else if ((i == 0 && std::isalnum(line[i])) || (i > 0 && std::isspace(line[i - 1]) && std::isalnum(line[i])))
