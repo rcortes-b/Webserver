@@ -7,6 +7,13 @@ Response::Response()
 	this->statusMsg = "OK";
 }
 
+Response::Response(ServerConfig &server)
+{
+	this->statusCode = "200";
+	this->statusMsg = "OK";
+	this->server = server;
+}
+
 Response::Response(Response &other)
 {
 	this->petition = other.petition;
@@ -45,11 +52,10 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	this->protocol = "HTTP/1.1";
 	this->statusCode = statusCode;
 	this->statusMsg = statusMsg;
-	this->contentType = "text/plain";
+	this->contentType = "";
 	throw BadPetition();
 }
 
-// TODOS LOS ERROR ESTAN EN 400 (SE TIENE QUE CAMBIAR SI HAY ESPECIFICO)
 void	Response::setUp(std::string petition)
 {
 	int token;
@@ -165,8 +171,8 @@ void Response::handleHeaders(std::string headers)
 		start += 15;
 		if (((const unsigned long)(end = headers.find("\r\n"))) != std::string::npos)
 			this->setBadThrow("400", "Bad Request");
-		// PLACEHOLDER PARA MAXIMO TAMANY BODY
-		if (strToNum(headers.substr(start, end)) > MAX_BODYSIZE)
+		std::string maxBodySize = this->server.getMaxSize();
+		if (maxBodySize != "" && strToNum(headers.substr(start, end)) > strToNum(maxBodySize))
 			this->setBadThrow("406", "Not Acceptable");
 	}
 	if (((const unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
@@ -219,7 +225,7 @@ void Response::sendResponseMsg(int socketFd)
 	struct stat stat_buf;
 	std::string method = this->petition.getMethod();
 	// PLACEHOLDER ROOT
-	std::string root(ROOT);
+	std::string root = this->server.getRoot();
 	char *path = const_cast<char *>(root.append(this->petition.getPath()).c_str());
 	
 	try

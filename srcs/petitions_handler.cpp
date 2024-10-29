@@ -1,8 +1,9 @@
 # include "../includes/Response.hpp"
+# include "../includes/ServerConfig.hpp"
 
-void handlePetition(std::string petition, int socketFd)
+void handlePetition(std::string petition, int socketFd, ServerConfig &server)
 {
-	Response resp;
+	Response resp(server);
 
 	try
 	{		

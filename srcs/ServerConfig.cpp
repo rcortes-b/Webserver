@@ -2,8 +2,8 @@
 
 ServerConfig::ServerConfig(void)
 {
-	_host = "DefaultHost";
-	_max_size = "DefaultLimitSize";
+	_host = "127.0.0.1";
+	_max_size = "";
 	_root = "DefaultRoot";
 	_autoindex = NONE;
 	_isDefPort = false;
@@ -133,3 +133,39 @@ std::vector<std::string>	&ServerConfig::getPort(void)
 {
 	return _port;
 }
+
+std::string	&ServerConfig::getHost(void)
+{
+	return _host;
+}
+
+std::vector<std::string>	&ServerConfig::getServerName(void)
+{
+	return _server_name;
+}
+
+std::vector<std::string>	&ServerConfig::getErrorPage(void)
+{
+	return _error_page;
+}
+
+std::string	&ServerConfig::getMaxSize(void)
+{
+	return _max_size;
+}
+
+std::string	&ServerConfig::getRoot(void)
+{
+	return _root;
+}
+
+std::vector<std::string>	&ServerConfig::getIndex(void)
+{
+	return _index_file;
+}
+
+unsigned int	&ServerConfig::getAutoIndex(void)
+{
+	return _autoindex;
+}
+

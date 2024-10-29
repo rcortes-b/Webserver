@@ -13,11 +13,14 @@
 # include <sys/epoll.h>
 # include <fcntl.h>
 # include <map>
+# include <vector>
+# include "ServerConfig.hpp"
 
 //placeholders
 # define MAX_CONNECTIONS 1024
 # define MAX_BUFFER_SIZE 1024
-# define IP_HOST "localhost"
+
+class ServerConfig;
 
 typedef struct sockaddr_in	t_sockaddr_in;
 typedef struct sockaddr t_sockaddr;
@@ -60,7 +63,7 @@ public:
 	SimpleSocket &operator=(const SimpleSocket &other);
 	~SimpleSocket();
 
-	void setSocket(std::string port);
+	void setSocket(std::string port, std::string host);
 	int acceptConnection(void);
 	static int	readPetition(int clientFd, std::string &petition);
 	static int	readBody(std::string &petition, std::string token, int clientFd);
@@ -69,6 +72,6 @@ public:
 
 };
 
-void	connectServer( void );
+void	connectServer( std::vector<ServerConfig> &server );
 
 typedef std::vector<SimpleSocket>::iterator it_socvec;

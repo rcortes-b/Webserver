@@ -13,7 +13,7 @@ SimpleSocket::SimpleSocket(std::string port)
 	(void)port; //what is this
 }
 
-void	SimpleSocket::setSocket(std::string port)
+void	SimpleSocket::setSocket(std::string port, std::string host)
 {
 	t_addrinfo hints;
 	int enable = 1;
@@ -21,7 +21,7 @@ void	SimpleSocket::setSocket(std::string port)
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
-	int status = getaddrinfo(IP_HOST, port.c_str(), &hints, &this->addrinfo);
+	int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &this->addrinfo);
 	if (status != 0)
 	{
 		std::cout << gai_strerror(status) << '\n';
@@ -145,7 +145,7 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 	std::string next_body(buffer);
 	petition = header + body + next_body;
 	std::cout << "PETICION:\n" << petition << '\n';
-	handlePetition(petition, clientFd);
+	//handlePetition(petition, clientFd);
 	return (0);
 }
 

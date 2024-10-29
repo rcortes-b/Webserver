@@ -2,6 +2,7 @@
 
 Petition::Petition()
 {
+	this->type = "text/plain";
 }
 
 Petition::Petition(const Petition &other)
@@ -9,6 +10,7 @@ Petition::Petition(const Petition &other)
 	this->method = other.method;
 	this->path = other.path;
 	this->protocol = other.protocol;
+	this->type = other.type;
 	this->headers = other.headers;
 }
 
@@ -19,6 +21,7 @@ Petition &Petition::operator=(const Petition &other)
 		this->method = other.method;
 		this->path = other.path;
 		this->protocol = other.protocol;
+		this->type = other.type;
 		this->headers = other.headers;
 	}
 	return (*this);

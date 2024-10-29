@@ -1,4 +1,5 @@
 # include "../includes/Petition.hpp"
+# include "../includes/ServerConfig.hpp"
 
 // TEMPOAL VARIABLES
 # define MAX_BODYSIZE 500
@@ -20,11 +21,13 @@ class Response
 {
 private:
 	Petition petition;
-	std::string protocol;
+	ServerConfig server;
+	std::string	protocol;
 	std::string	statusCode;
-	std::string statusMsg;
-	std::string contentType;
+	std::string	statusMsg;
+	std::string	contentType;
 	std::vector<std::string> heads;
+	
 
 	void handleMethod(std::string method);
 	void handlePath(std::string path);
@@ -33,6 +36,7 @@ private:
 
 public:
 	Response();
+	Response(ServerConfig &server);
 	Response(Response &other);
 	Response &operator=(Response &other);
 	~Response();

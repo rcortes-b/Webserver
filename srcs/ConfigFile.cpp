@@ -1,5 +1,6 @@
-#include "../includes/ServerConfig.hpp"
-#include "../includes/ConfigFile.hpp"
+# include "../includes/ServerConfig.hpp"
+# include "../includes/ServerLocation.hpp"
+# include "../includes/ConfigFile.hpp"
 
 #define KEY_AMOUNT 9
 
@@ -79,7 +80,7 @@ static void	setConfigValue(std::string const &line, ServerConfig &server, unsign
 	};
 }
 
-static void parse_lines(std::string const &line, std::fstream &file, ServerConfig &server)
+static bool parse_lines(std::string const &line, std::fstream &file, ServerConfig &server)
 {
 	size_t	key_size = 0;
 	size_t	counter = -1;
@@ -105,7 +106,7 @@ static void parse_lines(std::string const &line, std::fstream &file, ServerConfi
 			for (std::vector<std::string>::iterator it = server.getPort().begin(); it != server.getPort().end(); it++) {
 				std::cout << "This is a testing site: \n";
 				std::cout << *it <<std::endl; }
-			return ;
+			return true;
 		}
 		else if (line[i] == '}') {
 			i++;
@@ -113,16 +114,19 @@ static void parse_lines(std::string const &line, std::fstream &file, ServerConfi
 				i++;
 			if (i != line.size())
 				throw ThrowError("Error in server: Characters after \'}\' are not allowed");
+			return false;
 		}
 	}
+	return true;
 }
 static ServerConfig	iterate_server_data(std::string line, std::fstream &file)
 {
 	ServerConfig	server;
 
-	while (std::getline(file, line))
-		parse_lines(line, file, server);
-
+	while (std::getline(file, line)) {
+		if (!parse_lines(line, file, server))
+			return server;
+	}
 	return server;
 }
 
@@ -149,7 +153,37 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 						if (i != line.size())
 							throw ThrowError("Error in server: Characters after \'{\' are not allowed");
 						location_amount = 0;
-						servers.push_back(iterate_server_data(line, file)); //se manda el restante de la linea para ver si hay algo tipo server { host: 8080 ...
+						servers.push_back(iterate_server_data(line, file));
+						//this is to delete
+						for (std::vector<ServerConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+						{
+							for (std::vector<ServerLocation>::iterator itLoc = (*it).getLocation().begin(); itLoc != (*it).getLocation().end(); itLoc++)
+							{
+								std::cout << "----- LOCATION -----" << std::endl;
+								std::cout << "Route: " << (*itLoc).getRoute() << std::endl;
+								std::cout << "Redirect: " << (*itLoc).getRedirect() << std::endl;
+								std::cout << "Root: " << (*itLoc).getRoot() << std::endl;
+								std::cout << "Index: " << (*itLoc).getIndex() << std::endl;
+								std::cout << "AutoIndex: " << (*itLoc).getAutoIndex() << std::endl;
+								for (std::vector<std::string>::iterator itMet = (*itLoc).getMethods().begin(); itMet != (*itLoc).getMethods().end(); itMet++)
+									std::cout << "Method: " << *itMet << std::endl;
+								for (std::vector<std::string>::iterator itCgi = (*itLoc).getCgiExtension().begin(); itCgi != (*itLoc).getCgiExtension().end(); itCgi++)
+									std::cout << "Cgi: " << *itCgi << std::endl;
+								std::cout << "----- END LOCATION -----" << std::endl;
+							}
+							for (std::vector<std::string>::iterator itPort = (*it).getPort().begin(); itPort != (*it).getPort().end(); itPort++)
+								std::cout << "Port of server: " << *itPort << std::endl;
+							for (std::vector<std::string>::iterator itSn = (*it).getServerName().begin(); itSn != (*it).getServerName().end(); itSn++)
+								std::cout << "ServerName of server: " << *itSn << std::endl;
+							for (std::vector<std::string>::iterator itEp = (*it).getErrorPage().begin(); itEp != (*it).getErrorPage().end(); itEp++)
+							std::cout << "Error Page of server: " << *itEp << std::endl;
+							for (std::vector<std::string>::iterator itIn = (*it).getIndex().begin(); itIn != (*it).getIndex().end(); itIn++)
+								std::cout << "Index: " << *itIn << std::endl;
+							std::cout << "Host: " << (*it).getHost() << std::endl;
+							std::cout << "Max Size: " << (*it).getMaxSize() << std::endl;
+							std::cout << "Root: " << (*it).getRoot() << std::endl;
+							std::cout << "AutoIndex: " << (*it).getAutoIndex() << std::endl;
+						}
 					}
 				}
 			}
@@ -189,7 +223,7 @@ bool	is_valid_extension(std::string const &extension)
 									"sh"
 											};
 	for (unsigned int it = 0; it < 7; it++) {
-		std::cout << valid_extension[it] << " " << extension << std::endl;//del
+		std::cout << valid_extension[it]  << valid_extension[it].size() << " " << extension << extension.size() << std::endl;//del
 		if (valid_extension[it] == extension)
 			return true;
 	}

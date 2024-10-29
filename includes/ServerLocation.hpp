@@ -41,17 +41,13 @@ class ServerLocation {
 			void	setIndex( std::string line );
 			void	setCgi( std::string line );
 
-	/*class	LocationException : public std::exception {
-		private:
-				std::string _err_msg;
-		public:
-			LocationException( std::string const err_msg) {
-				_err_msg = err_msg;
-			}
-			virtual const char	*what( void ) const throw() {
-				return _err_msg.c_str();
-			}
-	};*/
+			std::string					&getRoute( void );
+			std::vector<std::string>	&getMethods( void );
+			std::vector<std::string>	&getCgiExtension( void );
+			std::string					&getRedirect( void );
+			std::string					&getRoot( void );
+			std::string					&getIndex( void );
+			unsigned int				&getAutoIndex( void );
 };
 
 #endif

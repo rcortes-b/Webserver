@@ -9,7 +9,7 @@ ERROR MESSAGES
 	- "The file has not a valid format. \".conf format is required.\""
 */
 
-static void	parse_file(std::string &file)
+static std::vector<ServerConfig>	parse_file(std::string &file)
 {
 	size_t	len = file.size();
 	if (len < 6) //Comprueba que tiene un mínimo de carácteres para que sea .conf
@@ -26,7 +26,7 @@ static void	parse_file(std::string &file)
 	f.open(file.c_str());
 	if (!f)
 		throw ThrowError("Failed opening the file.");
-	(void)parse_server_data(f);
+	return parse_server_data(f);
 }
 
 int main(int argc, char **argv)
@@ -37,30 +37,14 @@ int main(int argc, char **argv)
 		return (1);
 	}
 	try {
+
 		std::string file = argv[1];
-		parse_file(file);
-		connectServer();
+		std::vector<ServerConfig>	servers;
+		servers = parse_file(file);
+		//for (std::vector<ServerConfig>::iterator it = servers)
+		connectServer(servers);
+
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
-	//parse file
-	/*try
-	{
-		
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}*/
-	
-	//start connections
-	/*try
-	{
-		//YA VEREMOS QUE PASAR COMO ARGUEMENTO
-		connectServer();
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}*/
 }

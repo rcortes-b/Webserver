@@ -1,4 +1,5 @@
 # include "../includes/SimpleSocket.hpp"
+# include "../includes/ServerConfig.hpp"
 
 bool terminate_sig = false;
 
@@ -19,30 +20,29 @@ void	handleSignal(int sig)
 	terminate_sig = true;
 }
 
-void	connectServer(void)
+void	connectServer(std::vector<ServerConfig> &server)
 {
 	std::cout << "START" << '\n';
 	std::signal(SIGINT, handleSignal);
 	try
 	{
-		//placeholder parametro
 		std::map<int, std::string> listeningSockets;
-		std::vector<std::string> test_ports;
+		//EL WHILE GENERAL DE SERVERS DEBE SER AQUI server[i] no server[0]
+		/*std::vector<std::string> test_ports;
 		test_ports.push_back("8080");
-		test_ports.push_back("1024");
-		// De momento no uso NADA del archivo config lo preparo todo con variables y despues lo juntamos
-		// QUIERO MEJORAR ESO A POLL O EPOLL EL SELECT ES UN CAGAO
-		// PRIMER DE TOT FER BUCLES A TOTES LES COSES QUE ES NECESSITI
+		test_ports.push_back("1024");*/
+
 		std::vector<SimpleSocket> socketsVec;
 		SimpleSocket socket;
-		for (it_strvec it = test_ports.begin(); it != test_ports.end(); it++)
+		std::string serverHost = server[0].getHost();
+		std::vector<std::string> serverPorts = server[0].getPort();
+		for (it_strvec it = serverPorts.begin(); it != serverPorts.end(); it++)
 		{
-			socket.setSocket(*it);
+			socket.setSocket(*it, serverHost);
 
 			socketsVec.push_back(socket);
 		}
 
-		//int	serverSocket; what is this
 		t_epolle events[MAX_CONNECTIONS];
 		int event_count;
 		int epoll_fd = epoll_create(MAX_CONNECTIONS);

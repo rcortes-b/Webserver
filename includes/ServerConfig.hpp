@@ -56,6 +56,13 @@ class ServerConfig {
 
 			std::vector<ServerLocation>	&getLocation( void );
 			std::vector<std::string>	&getPort( void );
+			std::string					&getHost( void );
+			std::vector<std::string>	&getServerName( void );
+			std::vector<std::string>	&getErrorPage( void );
+			std::string					&getMaxSize( void );
+			std::string					&getRoot( void );
+			std::vector<std::string>	&getIndex( void );
+			unsigned int				&getAutoIndex( void );
 
 };
 

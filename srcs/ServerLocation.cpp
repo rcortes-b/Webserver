@@ -177,8 +177,8 @@ void	ServerLocation::setCgi(std::string line)
 		update_backlimit(line, i, back_limit);
 		if (line[i] == ',' || line[i] == ';')
 		{
-			if (is_valid_extension(line.substr(front_limit, back_limit - front_limit)))
-				_cgi_extension.push_back(line.substr(front_limit, back_limit - front_limit));
+			if (is_valid_extension(line.substr(front_limit, back_limit - front_limit))) {
+				_cgi_extension.push_back(line.substr(front_limit, back_limit - front_limit)); std::cout << "Look at this:  :: :  :" << line.substr(front_limit, back_limit - front_limit) << std::endl;}
 			else {
 			custom_msg = "Error in location nº" + numToStr(location_amount) +": CGI extension definition is not valid";
 			throw ThrowError(static_cast<std::string const>(custom_msg));
@@ -263,6 +263,41 @@ void	parse_location(std::fstream &file, std::string line, ServerConfig &server)
 			break ;
 		}
 		else
-			setLocation(line.substr(key_pos, i - key_pos), location, &line[i]); /* aqui esta el error Ramon */
+			setLocation(line.substr(key_pos, i - key_pos), location, &line[i]);
 	}
+}
+
+std::string	&ServerLocation::getRoute(void)
+{
+	return _route;
+}
+
+std::vector<std::string>	&ServerLocation::getMethods(void)
+{
+	return _methods;
+}
+
+std::vector<std::string>	&ServerLocation::getCgiExtension(void)
+{
+	return _cgi_extension;
+}
+
+std::string	&ServerLocation::getRedirect(void)
+{
+	return _redirect;
+}
+
+std::string	&ServerLocation::getRoot(void)
+{
+	return _root;
+}
+
+std::string	&ServerLocation::getIndex(void)
+{
+	return _index;
+}
+
+unsigned int	&ServerLocation::getAutoIndex(void)
+{
+	return _autoindex;
 }
