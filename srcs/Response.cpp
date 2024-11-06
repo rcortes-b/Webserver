@@ -65,7 +65,7 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	size_t errorPageSize = errorPage.size();
 	for (size_t i = 0; i < errorPageSize - 1; i++)
 	{
-		if (this->statusCode == errorPage[i])
+		if (this->statusCode == errorPage[i] && access(errorPage[errorPageSize - 1].c_str(), R_OK))
 		{
 			path = errorPage[errorPageSize - 1];
 			break;
