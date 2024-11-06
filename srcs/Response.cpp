@@ -79,7 +79,7 @@ void	Response::setUp(std::string petition)
 {
 	int token;
 	
-	if (((const unsigned long)(token = petition.find("\r\n"))) == std::string::npos)
+	if (((unsigned long)(token = petition.find("\r\n"))) == std::string::npos)
 		this->setBadThrow("400", "Bad Request");
 	std::string statusLine = petition.substr(0, token + 2);
 	
@@ -89,7 +89,7 @@ void	Response::setUp(std::string petition)
 		from = 0;
 		if (i == 0)
 		{
-			if (((const unsigned long)(token = statusLine.find(" "))) == std::string::npos)
+			if (((unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string method = statusLine.substr(from, token);
@@ -98,7 +98,7 @@ void	Response::setUp(std::string petition)
 		}
 		else if (i == 1)
 		{
-			if (((const unsigned long)(token = statusLine.find(" "))) == std::string::npos)
+			if (((unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string path = statusLine.substr(from, token);
@@ -107,7 +107,7 @@ void	Response::setUp(std::string petition)
 		}
 		else if (i == 2)
 		{
-			if (((const unsigned long)(token = statusLine.find("\r\n"))) == std::string::npos)
+			if (((unsigned long)(token = statusLine.find("\r\n"))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
 
 			std::string protocol = statusLine.substr(from, token);
@@ -116,7 +116,7 @@ void	Response::setUp(std::string petition)
 			statusLine = statusLine.substr(token);
 		}
 	}
-	if (((const unsigned long)(from = statusLine.find("\0"))) == std::string::npos)
+	if (((unsigned long)(from = statusLine.find("\0"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 	
 	std::string headers = petition.substr(from);
@@ -184,19 +184,19 @@ void Response::handleHeaders(std::string headers)
 	// SI AL FINAL SE TIENE QUE HACER ALGO CON LOS HEADERS PUES YA SE VERA
 	int start;
 	int end;
-	if (((const unsigned long)(start = headers.find("Content-Length:"))) != std::string::npos)
+	if (((unsigned long)(start = headers.find("Content-Length:"))) != std::string::npos)
 	{
 		start += 15;
-		if (((const unsigned long)(end = headers.find("\r\n"))) != std::string::npos)
+		if (((unsigned long)(end = headers.find("\r\n"))) != std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 		std::string maxBodySize = this->server.getMaxSize();
 		if (maxBodySize != "" && strToNum(headers.substr(start, end)) > strToNum(maxBodySize))
 			this->setBadThrow("406", "Not Acceptable");
 	}
-	if (((const unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
+	if (((unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
 	{
 		start += 13;
-		if (((const unsigned long)(end = headers.find("\r\n"))) == std::string::npos)
+		if (((unsigned long)(end = headers.find("\r\n"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
 		this->petition.setType(headers.substr(start, end));
 	}
