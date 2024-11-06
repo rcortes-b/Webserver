@@ -5,13 +5,19 @@ Response::Response()
 {
 	this->statusCode = "200";
 	this->statusMsg = "OK";
+	this->contentType = "text/plain";
+	this->body = "";
+	this->heads.push_back("Server: webserv");
 }
 
 Response::Response(ServerConfig &server)
 {
 	this->statusCode = "200";
 	this->statusMsg = "OK";
+	this->contentType = "text/plain";
 	this->server = server;
+	this->body = "";
+	this->heads.push_back("Server: webserv");
 }
 
 Response::Response(Response &other)
@@ -52,7 +58,20 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	this->protocol = "HTTP/1.1";
 	this->statusCode = statusCode;
 	this->statusMsg = statusMsg;
-	this->contentType = "";
+	this->contentType = "text/html";
+	
+	std::string path = "./www/errors/" + this->statusCode + ".html";
+	std::vector<std::string> errorPage = this->server.getErrorPage();
+	size_t errorPageSize = errorPage.size();
+	for (size_t i = 0; i < errorPageSize - 1; i++)
+	{
+		if (this->statusCode == errorPage[i])
+		{
+			path = errorPage[errorPageSize - 1];
+			break;
+		}
+	}
+	this->doGet(const_cast<char *>(path.c_str()));
 	throw BadPetition();
 }
 
@@ -115,7 +134,6 @@ void Response::handlePath(std::string path)
 {
 	int len = path.length();
 
-	// ESTO ES EL DEFAULT UP TO CHANGE
 	if (len > 0 && path[len - 1] != '/' && path.find('.') == std::string::npos)
 		path + "/";
 
@@ -123,7 +141,6 @@ void Response::handlePath(std::string path)
 	{
 		this->petition.setPath(path + "index.html");
 		this->contentType = "text/html";
-		//FINS AQUI
 	}
 	else if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
 	{
@@ -194,7 +211,7 @@ std::string Response::setResponseHead(std::string &resp)
 	resp.append(" ");
 	resp.append(this->statusMsg);
 	resp.append("\r\n");
-	if (this->statusCode == "200")
+	if (!this->body.empty())
 	{
 		resp.append("Content-Type: ");
 		resp.append(this->contentType);
@@ -220,9 +237,6 @@ void Response::sendResponseMsg(int socketFd)
 	// WRITE DEL BUFFER AL SOCKET (de fet nomes tractar body si el statusCode es 200)
 	// POTSER UTILITZAR SYNC I/O PER L'OPEN
 
-	char buffer_body[MAX_BODYSIZE + 1];
-	std::memset(buffer_body, '\0', MAX_BODYSIZE);
-	struct stat stat_buf;
 	std::string method = this->petition.getMethod();
 	std::string root = this->server.getRoot();
 	char *path = const_cast<char *>(root.append(this->petition.getPath()).c_str());
@@ -237,7 +251,7 @@ void Response::sendResponseMsg(int socketFd)
 					this->setBadThrow("404", "Not Found");
 				if (access(path, R_OK) < 0)
 					this->setBadThrow("403", "Forbidden");
-				this->doGet(path, stat_buf, buffer_body);
+				this->doGet(path);
 			}
 			else if (method == "DELETE")
 			{
@@ -252,7 +266,6 @@ void Response::sendResponseMsg(int socketFd)
 
 				if ((fdPath = open(path, O_CREAT | O_NONBLOCK | O_EXCL)) < 0)
 				{
-					close(fdPath);
 					if (errno == EEXIST)
 						this->setBadThrow("403", "Forbidden");
 					this->setBadThrow("500", "Internal Server Error");
@@ -267,16 +280,19 @@ void Response::sendResponseMsg(int socketFd)
 	std::string respMsg;
 
 	this->setResponseHead(respMsg);
-	std::cout << "RESPONSE:\n" << respMsg.c_str() << buffer_body;
+	std::cout << "RESPONSE:\n" << respMsg.c_str() << this->body;
 	send(socketFd, respMsg.c_str(), respMsg.size(), 0);
-	if (this->statusCode == "200")
-		send(socketFd, &buffer_body, static_cast<size_t>(stat_buf.st_size), 0);
+	if (!this->body.empty())
+		send(socketFd, this->body.c_str(), this->body.size(), 0);
 }
 
-void	Response::doGet(char *path, struct stat &stat_buf, char *buffer_body)
+void	Response::doGet(char *path)
 {
 	int fdPath;
 	ssize_t readedSize;
+	char buffer_body[MAX_BODYSIZE + 1];
+	std::memset(buffer_body, '\0', MAX_BODYSIZE);
+	struct stat stat_buf;
 	
 	if ((fdPath = open(path, O_RDONLY | O_NONBLOCK)) < 0)
 		this->setBadThrow("500", "Internal Server Error");
@@ -297,5 +313,7 @@ void	Response::doGet(char *path, struct stat &stat_buf, char *buffer_body)
 		}
 		tmp_statSize -= readedSize;
 	}
+	std::string tmpBody(buffer_body);
+	this->body = tmpBody;
 	close(fdPath);
 }

@@ -27,6 +27,7 @@ private:
 	std::string	statusMsg;
 	std::string	contentType;
 	std::vector<std::string> heads;
+	std::string body;
 	
 
 	void handleMethod(std::string method);
@@ -46,5 +47,5 @@ public:
 	void setBadThrow(std::string statusCode, std::string statusMsg);
 	std::string setResponseHead(std::string &resp);
 	void sendResponseMsg(int socketFd);
-	void doGet(char *path, struct stat &stat_buf, char *buffer_body);
+	void doGet(char *path);
 };
