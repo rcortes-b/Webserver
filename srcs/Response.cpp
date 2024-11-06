@@ -62,10 +62,10 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	
 	std::string path = "./www/errors/" + this->statusCode + ".html";
 	std::vector<std::string> errorPage = this->server.getErrorPage();
-	size_t errorPageSize = errorPage.size();
-	for (size_t i = 0; i < errorPageSize - 1; i++)
+	int errorPageSize = errorPage.size();
+	for (int i = 0; i < errorPageSize - 1; i++)
 	{
-		if (this->statusCode == errorPage[i] && access(errorPage[errorPageSize - 1].c_str(), R_OK))
+		if (this->statusCode == errorPage[i] && access(errorPage[errorPageSize - 1].c_str(), R_OK) == 0)
 		{
 			path = errorPage[errorPageSize - 1];
 			break;
@@ -135,11 +135,12 @@ void Response::handlePath(std::string path)
 	int len = path.length();
 
 	if (len > 0 && path[len - 1] != '/' && path.find('.') == std::string::npos)
-		path + "/";
+		path.append("/");
+	len = path.length();
 
 	if(len > 0 && (path[len - 1] == '/'))
 	{
-		this->petition.setPath(path + "index.html");
+		this->petition.setPath(path.append("index.html"));
 		this->contentType = "text/html";
 	}
 	else if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
@@ -275,7 +276,6 @@ void Response::sendResponseMsg(int socketFd)
 		}
 	}
 	catch(const std::exception& e) { }
-	
 
 	std::string respMsg;
 
