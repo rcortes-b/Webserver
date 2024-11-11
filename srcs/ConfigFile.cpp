@@ -240,7 +240,7 @@ bool	get_single_value(std::string &line, std::string &value)
 	front = i;
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
-	value = line.substr(front, i);
+	value = line.substr(front, i - front);
 	if (!is_the_end(&line[i]))
 		return false;
 	return true;
