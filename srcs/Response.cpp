@@ -6,8 +6,9 @@ Response::Response()
 	this->statusCode = "200";
 	this->statusMsg = "OK";
 	this->contentType = "text/plain";
-	this->body = "";
+	this->body = NULL;
 	this->heads.push_back("Server: webserv");
+	this->bodySize = 0;
 }
 
 Response::Response(ServerConfig &server)
@@ -16,8 +17,9 @@ Response::Response(ServerConfig &server)
 	this->statusMsg = "OK";
 	this->contentType = "text/plain";
 	this->server = server;
-	this->body = "";
+	this->body = NULL;
 	this->heads.push_back("Server: webserv");
+	this->bodySize = 0;
 }
 
 Response::Response(Response &other)
@@ -29,6 +31,18 @@ Response::Response(Response &other)
 	this->contentType = other.contentType;
 	for (std::vector<std::string>::iterator it = other.heads.begin(); it != other.heads.end(); it++)
 		this->heads.push_back(*it);
+	this->bodySize = other.bodySize;
+	for (int i = 0; i < other.bodySize; i++)
+	{
+		if (i == 0)
+		{
+			if (this->body)
+				delete[] this->body;
+			this->body = new char [other.bodySize];
+		}
+		this->body[i] = other.body[i];
+	}
+	
 }
 
 Response &Response::operator=(Response &other)
@@ -43,6 +57,18 @@ Response &Response::operator=(Response &other)
 		this->heads.clear();
 		for (std::vector<std::string>::iterator it = other.heads.begin(); it != other.heads.end(); it++)
 			this->heads.push_back(*it);
+		this->bodySize = other.bodySize;
+		for (int i = 0; i < other.bodySize; i++)
+		{
+			if (i == 0)
+			{
+				if (this->body)
+					delete[] this->body;
+				this->body = new char [other.bodySize];
+			}
+			this->body[i] = other.body[i];
+		}
+		
 	}
 
 	return (*this);
@@ -50,6 +76,7 @@ Response &Response::operator=(Response &other)
 
 Response::~Response()
 {
+	delete[] this->body;
 }
 
 void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
@@ -103,6 +130,7 @@ void	Response::setUp(std::string petition)
 
 			std::string path = statusLine.substr(from, token);
 			this->handlePath(path);
+			this->setLocation();
 			statusLine = statusLine.substr(++token);
 		}
 		else if (i == 2)
@@ -121,6 +149,34 @@ void	Response::setUp(std::string petition)
 	
 	std::string headers = petition.substr(from);
 	this->handleHeaders(headers);
+}
+
+void	Response::setLocation(void)
+{
+	std::string path = this->petition.getPath();
+	std::cout << "PAAAAAAAAAAATH:  "<< path << '\n';
+	size_t start = path.find("/");
+	size_t end = path.find("/", start + 1);
+	if (end == std::string::npos)
+	{
+		this->location.setRootSimple(this->server.getRoot());
+		//UNCOMENT WHEN FIXED SETINDEX
+		//this->location.setIndex(this->server.getIndex());
+		this->location.setAutoIndex(this->server.getAutoIndex());
+		return;
+	}
+	path = path.substr(start, end);
+	std::vector<ServerLocation> serverLocations = this->server.getLocation();
+	for (std::vector<ServerLocation>::iterator it = serverLocations.begin(); it < serverLocations.end(); it++)
+	{
+		std::string locationRoute = (*it).getRoute();
+		if (path == locationRoute || (path[path.length() - 1] == '/' && path.substr(0, path.length() - 1) == locationRoute))
+		{	
+			this->location = *it;
+			return;
+		}
+	}
+	this->setBadThrow("404", "NotFound");
 }
 
 void	Response::handleMethod(std::string method)
@@ -164,6 +220,11 @@ void Response::handlePath(std::string path)
 		this->petition.setPath(path);
 		this->contentType = "text/css";
 	}
+	else if (len > 3 && path[len - 4] == '.' && path[len - 3] == 'i' && path[len - 2] == 'c' && path[len - 1] == 'o')
+	{
+		this->petition.setPath(path);
+		this->contentType = "image/x-icon";
+	}
 	else
 		this->setBadThrow("415", "Unsuppported Media Type");
 }
@@ -181,7 +242,6 @@ void Response::handleProtocol(std::string protocol)
 
 void Response::handleHeaders(std::string headers)
 {
-	// SI AL FINAL SE TIENE QUE HACER ALGO CON LOS HEADERS PUES YA SE VERA
 	int start;
 	int end;
 	if (((unsigned long)(start = headers.find("Content-Length:"))) != std::string::npos)
@@ -212,7 +272,7 @@ std::string Response::setResponseHead(std::string &resp)
 	resp.append(" ");
 	resp.append(this->statusMsg);
 	resp.append("\r\n");
-	if (!this->body.empty())
+	if (!this->body)
 	{
 		resp.append("Content-Type: ");
 		resp.append(this->contentType);
@@ -239,7 +299,11 @@ void Response::sendResponseMsg(int socketFd)
 	// POTSER UTILITZAR SYNC I/O PER L'OPEN
 
 	std::string method = this->petition.getMethod();
-	std::string root = this->server.getRoot();
+	std::string root;
+	if (this->location.getRoot().empty())
+		root = this->server.getRoot();
+	else
+		root = this->location.getRoot();
 	char *path = const_cast<char *>(root.append(this->petition.getPath()).c_str());
 	
 	try
@@ -282,38 +346,23 @@ void Response::sendResponseMsg(int socketFd)
 	this->setResponseHead(respMsg);
 	std::cout << "RESPONSE:\n" << respMsg.c_str() << this->body;
 	send(socketFd, respMsg.c_str(), respMsg.size(), 0);
-	if (!this->body.empty())
-		send(socketFd, this->body.c_str(), this->body.size(), 0);
+	if (this->body)
+		send(socketFd, this->body, this->bodySize, 0);
 }
 
 void	Response::doGet(char *path)
 {
-	int fdPath;
-	ssize_t readedSize;
-	char buffer_body[MAX_BODYSIZE + 1];
-	std::memset(buffer_body, '\0', MAX_BODYSIZE);
-	struct stat stat_buf;
-	
-	if ((fdPath = open(path, O_RDONLY | O_NONBLOCK)) < 0)
+	std::ifstream pathFile(path, std::ios::binary | std::ios::ate);
+	if (!pathFile.is_open())
 		this->setBadThrow("500", "Internal Server Error");
+	
+	this->bodySize = static_cast<int>(pathFile.tellg());
+	
+	this->body = new char [this->bodySize];
+	std::memset(this->body, '\0', this->bodySize);
 
-	stat(path, &stat_buf);
-	int tmp_statSize = stat_buf.st_size;
-	while (tmp_statSize > 0)
-	{
-		if (tmp_statSize < stat_buf.st_blksize)
-		{
-			if ((readedSize = read(fdPath, buffer_body, tmp_statSize)) < 0)
-				this->setBadThrow("500", "Internal Server Error");
-		}		
-		else
-		{
-			if ((readedSize = read(fdPath, buffer_body, stat_buf.st_blksize)) < 0)
-				this->setBadThrow("500", "Internal Server Error");
-		}
-		tmp_statSize -= readedSize;
-	}
-	std::string tmpBody(buffer_body);
-	this->body = tmpBody;
-	close(fdPath);
+	pathFile.seekg(0, std::ios::beg);
+	pathFile.read(this->body, this->bodySize);
+	
+	pathFile.close();
 }

@@ -137,6 +137,14 @@ void	ServerLocation::setRoot(std::string line)
 	_isDefRoot = true;
 }
 
+void	ServerLocation::setRootSimple(std::string line)
+{
+	if (_isDefRoot)
+		throw ThrowError("Error: Root has been already defined");
+	this->_root = line;
+	_isDefRoot = true;
+}
+
 void	ServerLocation::setAutoIndex(std::string line)
 {
 	if (_isDefAutoIndex)
@@ -145,6 +153,14 @@ void	ServerLocation::setAutoIndex(std::string line)
 		custom_msg = "Error in location nº" + numToStr(location_amount) +": Autoindex definition is not valid";
 		throw ThrowError(static_cast<std::string const>(custom_msg));
 	}
+	_isDefAutoIndex = true;
+}
+
+void	ServerLocation::setAutoIndex(unsigned int num)
+{
+	if (_isDefAutoIndex)
+		throw ThrowError("Error: Autoindex has been already defined");
+	this->_autoindex = num;
 	_isDefAutoIndex = true;
 }
 

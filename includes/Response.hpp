@@ -1,10 +1,6 @@
 # include "../includes/Petition.hpp"
 # include "../includes/ServerConfig.hpp"
 
-// TEMPOAL VARIABLES
-# define MAX_BODYSIZE 2000
-# define MAX_HEADERSIZE 500
-
 void	handlePetition(std::string petition, int socketFd, ServerConfig &server);
 
 class BadPetition: public std::exception
@@ -22,18 +18,21 @@ class Response
 private:
 	Petition petition;
 	ServerConfig server;
+	ServerLocation location;
 	std::string	protocol;
 	std::string	statusCode;
 	std::string	statusMsg;
 	std::string	contentType;
 	std::vector<std::string> heads;
-	std::string body;
+	char *body;
+	int	bodySize;
 	
 
 	void handleMethod(std::string method);
 	void handlePath(std::string path);
 	void handleProtocol(std::string protocol);
 	void handleHeaders(std::string headers);
+	void setLocation(void);
 
 public:
 	Response();

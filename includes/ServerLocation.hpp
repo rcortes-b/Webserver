@@ -37,7 +37,9 @@ class ServerLocation {
 			void	setMethods( std::string line );
 			void	setRedirect( std::string line );
 			void	setRoot( std::string line );
+			void	setRootSimple(std::string line);
 			void	setAutoIndex( std::string line );
+			void	setAutoIndex( unsigned int num );
 			void	setIndex( std::string line );
 			void	setCgi( std::string line );
 

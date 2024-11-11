@@ -6,6 +6,7 @@
 # include <stdbool.h>
 # include <cstring>
 # include <vector>
+# include <fstream>
 
 class ServerLocation;
 
