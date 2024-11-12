@@ -5,6 +5,7 @@ ServerConfig::ServerConfig(void)
 	_host = "127.0.0.1";
 	_max_size = "";
 	_root = "DefaultRoot";
+	_index_file = "";
 	_autoindex = NONE;
 	_isDefPort = false;
 	_isDefHost = false;
@@ -110,7 +111,7 @@ void	ServerConfig::setIndexFile(std::string line)
 {
 	if (_isDefIndex)
 		throw ThrowError("Error: Index has been already defined");
-	if (!get_multiple_values(line, _index_file))
+	if (!get_single_value(line, _index_file))
 		throw ThrowError("Error: Index is not valid");
 	_isDefIndex = true;
 }
@@ -159,7 +160,7 @@ std::string	&ServerConfig::getRoot(void)
 	return _root;
 }
 
-std::vector<std::string>	&ServerConfig::getIndex(void)
+std::string	&ServerConfig::getIndex(void)
 {
 	return _index_file;
 }

@@ -25,7 +25,7 @@ class ServerConfig {
 			std::vector<std::string>	_error_page;
 			std::string					_max_size;
 			std::string					_root;
-			std::vector<std::string>	_index_file;
+			std::string					_index_file;
 			unsigned int				_autoindex;
 			// (...)
 
@@ -62,7 +62,7 @@ class ServerConfig {
 			std::vector<std::string>	&getErrorPage( void );
 			std::string					&getMaxSize( void );
 			std::string					&getRoot( void );
-			std::vector<std::string>	&getIndex( void );
+			std::string					&getIndex( void );
 			unsigned int				&getAutoIndex( void );
 
 };
