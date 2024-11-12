@@ -177,8 +177,7 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 								std::cout << "ServerName of server: " << *itSn << std::endl;
 							for (std::vector<std::string>::iterator itEp = (*it).getErrorPage().begin(); itEp != (*it).getErrorPage().end(); itEp++)
 							std::cout << "Error Page of server: " << *itEp << std::endl;
-							for (std::vector<std::string>::iterator itIn = (*it).getIndex().begin(); itIn != (*it).getIndex().end(); itIn++)
-								std::cout << "Index: " << *itIn << std::endl;
+							std::cout << "Index: " << (*it).getIndex() << std::endl;
 							std::cout << "Host: " << (*it).getHost() << std::endl;
 							std::cout << "Max Size: " << (*it).getMaxSize() << std::endl;
 							std::cout << "Root: " << (*it).getRoot() << std::endl;
