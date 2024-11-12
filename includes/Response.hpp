@@ -1,6 +1,8 @@
 # include "../includes/Petition.hpp"
 # include "../includes/ServerConfig.hpp"
 
+# include <dirent.h>
+
 void	handlePetition(std::string petition, int socketFd, ServerConfig &server);
 
 class BadPetition: public std::exception
@@ -10,6 +12,26 @@ public:
 		virtual const char	*what() const throw()
 		{
 			return ("Bad Petition");
+		}
+};
+
+class Redirect: public std::exception
+{
+public:
+	public:
+		virtual const char	*what() const throw()
+		{
+			return ("Redirectng...");
+		}
+};
+
+class AutoIndex: public std::exception
+{
+public:
+	public:
+		virtual const char	*what() const throw()
+		{
+			return ("Showing AutoIndex...");
 		}
 };
 
@@ -29,7 +51,9 @@ private:
 	
 
 	void handleMethod(std::string method);
+	void checkMethods(void);
 	void handlePath(std::string path);
+	void handleIndexes(std::string &path);
 	void handleProtocol(std::string protocol);
 	void handleHeaders(std::string headers);
 	void setLocation(void);
@@ -44,7 +68,9 @@ public:
 
 	void setUp(std::string petition);
 	void setBadThrow(std::string statusCode, std::string statusMsg);
+	void setRedirectThrow(std::string host);
 	std::string setResponseHead(std::string &resp);
 	void sendResponseMsg(int socketFd);
 	void doGet(char *path);
+	void doAutoIndex(char *path);
 };

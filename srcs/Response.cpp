@@ -3,6 +3,7 @@
 
 Response::Response()
 {
+	this->protocol = "HTTP/1.1";
 	this->statusCode = "200";
 	this->statusMsg = "OK";
 	this->contentType = "text/plain";
@@ -13,6 +14,7 @@ Response::Response()
 
 Response::Response(ServerConfig &server)
 {
+	this->protocol = "HTTP/1.1";
 	this->statusCode = "200";
 	this->statusMsg = "OK";
 	this->contentType = "text/plain";
@@ -79,6 +81,17 @@ Response::~Response()
 	delete[] this->body;
 }
 
+void	Response::setRedirectThrow(std::string host)
+{
+	this->protocol = "HTTP/1.1";
+	this->statusCode = "302";
+	this->statusMsg = "Found";
+	this->heads.push_back("Location: " + host);
+	this->heads.push_back("Connection: close");
+	
+	throw Redirect();
+}
+
 void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 {
 	std::cout << statusMsg << '\n';
@@ -130,7 +143,6 @@ void	Response::setUp(std::string petition)
 
 			std::string path = statusLine.substr(from, token);
 			this->handlePath(path);
-			this->setLocation();
 			statusLine = statusLine.substr(++token);
 		}
 		else if (i == 2)
@@ -154,7 +166,6 @@ void	Response::setUp(std::string petition)
 void	Response::setLocation(void)
 {
 	std::string path = this->petition.getPath();
-	std::cout << "PAAAAAAAAAAATH:  "<< path << '\n';
 	size_t start = path.find("/");
 	size_t end = path.find("/", start + 1);
 	if (end == std::string::npos)
@@ -170,9 +181,11 @@ void	Response::setLocation(void)
 	for (std::vector<ServerLocation>::iterator it = serverLocations.begin(); it < serverLocations.end(); it++)
 	{
 		std::string locationRoute = (*it).getRoute();
-		if (path == locationRoute || (path[path.length() - 1] == '/' && path.substr(0, path.length() - 1) == locationRoute))
+		if (path == locationRoute)
 		{	
 			this->location = *it;
+			if (!this->location.getRedirect().empty())
+				this->setRedirectThrow(this->location.getRedirect());
 			return;
 		}
 	}
@@ -186,20 +199,43 @@ void	Response::handleMethod(std::string method)
 	this->petition.setMethod(method);
 }
 
+void	Response::checkMethods(void)
+{
+	std::string petitionMethod = this->petition.getMethod();
+	std::vector<std::string> methods = this->location.getMethods();
+
+	for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
+	{
+		if (petitionMethod == *it)
+			return;
+	}
+	this->setBadThrow("405", "Method Not Allowed");
+}
+
 void Response::handlePath(std::string path)
 {
 	int len = path.length();
 
 	if (len > 0 && path[len - 1] != '/' && path.find('.') == std::string::npos)
 		path.append("/");
+	this->petition.setPath(path);
+
+	//Reset length of path after appending the /
 	len = path.length();
 
+	//Set location
+	this->setLocation();
+	//Check for the alredy configured method
+	if (!this->location.getMethods().empty())
+		this->checkMethods();
+
 	if(len > 0 && (path[len - 1] == '/'))
-	{
-		this->petition.setPath(path.append("index.html"));
-		this->contentType = "text/html";
-	}
-	else if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
+		this->handleIndexes(path);
+	
+	//Reset length of path after appending the index
+	len = path.length();
+
+	if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
 	{
 		this->petition.setPath(path);
 		this->contentType = "text/html";
@@ -227,6 +263,54 @@ void Response::handlePath(std::string path)
 	}
 	else
 		this->setBadThrow("415", "Unsuppported Media Type");
+}
+
+void Response::doAutoIndex(char *path)
+{
+	DIR *dir = NULL;
+	struct dirent *entry;
+	std::string strBody = \
+	"<!DOCTYPE html>\n<html lang=\"en\">\n\t<h1>Index of ";
+	
+	strBody.append(this->location.getRoute());
+	strBody.append("</h1>\n\t<br></br>\n");
+
+	dir = opendir(path);
+	if (!dir)
+		this->setBadThrow("500", "Internal Server Error");
+	
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string tmp(entry->d_name);
+		strBody.append("\t<a href=\"");
+		strBody.append(tmp);
+		strBody.append("\">");
+		strBody.append(tmp);
+		strBody.append("</a><br></br>");
+	}
+	
+	strBody.append("</html>\n");
+	this->bodySize = strBody.size();
+	this->body = new char[this->bodySize];
+	std::strcpy(this->body, strBody.c_str());
+	std::cout << this->body << '\n';
+	this->contentType = "text/html";
+
+	closedir(dir);
+}
+
+void Response::handleIndexes(std::string &path)
+{
+	std::string index = "index.html";
+	std::string locationIndex = this->location.getIndex();
+	
+	//Is index
+	if (!locationIndex.empty())
+		index = locationIndex;
+	//Is Autoindex
+	else if (this->location.getAutoIndex() == ON)
+		throw AutoIndex();
+	path.append(index);
 }
 
 void Response::handleProtocol(std::string protocol)
@@ -272,16 +356,16 @@ std::string Response::setResponseHead(std::string &resp)
 	resp.append(" ");
 	resp.append(this->statusMsg);
 	resp.append("\r\n");
-	if (!this->body)
+	if (this->body)
 	{
 		resp.append("Content-Type: ");
 		resp.append(this->contentType);
 		resp.append("\r\n");
-		for (std::vector<std::string>::iterator it = this->heads.begin(); it != this->heads.end(); it++)
-		{
-			resp.append(*it);
-			resp.append("\r\n");
-		}
+	}
+	for (std::vector<std::string>::iterator it = this->heads.begin(); it != this->heads.end(); it++)
+	{
+		resp.append(*it);
+		resp.append("\r\n");
 	}
 	resp.append("\r\n");
 
@@ -304,7 +388,9 @@ void Response::sendResponseMsg(int socketFd)
 		root = this->server.getRoot();
 	else
 		root = this->location.getRoot();
-	char *path = const_cast<char *>(root.append(this->petition.getPath()).c_str());
+
+	std::string strPath = this->petition.getPath();
+	char *path = const_cast<char *>(root.append(strPath).c_str());
 	
 	try
 	{
@@ -316,7 +402,13 @@ void Response::sendResponseMsg(int socketFd)
 					this->setBadThrow("404", "Not Found");
 				if (access(path, R_OK) < 0)
 					this->setBadThrow("403", "Forbidden");
-				this->doGet(path);
+				
+				if (strPath[strPath.length() - 1] == '/')
+					this->doAutoIndex(path);
+				else
+					this->doGet(path);
+
+				std::cout << this->bodySize << this->body << '\n';
 			}
 			else if (method == "DELETE")
 			{

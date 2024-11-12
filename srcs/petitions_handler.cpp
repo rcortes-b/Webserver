@@ -9,9 +9,7 @@ void handlePetition(std::string petition, int socketFd, ServerConfig &server)
 	{		
 		resp.setUp(petition);
 	}
-	catch(const std::exception &e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	catch(const std::exception &e) { }
+
 	resp.sendResponseMsg(socketFd);
 }
