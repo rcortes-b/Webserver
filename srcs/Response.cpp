@@ -171,8 +171,7 @@ void	Response::setLocation(void)
 	if (end == std::string::npos)
 	{
 		this->location.setRootSimple(this->server.getRoot());
-		//UNCOMENT WHEN FIXED SETINDEX
-		//this->location.setIndex(this->server.getIndex());
+		this->location.setIndex(this->server.getIndex());
 		this->location.setAutoIndex(this->server.getAutoIndex());
 		return;
 	}
@@ -229,9 +228,20 @@ void Response::handlePath(std::string path)
 	if (!this->location.getMethods().empty())
 		this->checkMethods();
 
-	if(len > 0 && (path[len - 1] == '/'))
-		this->handleIndexes(path);
-	
+	std::string method = this->petition.getMethod() ;
+	if(len > 0 && path[len - 1] == '/')
+	{
+		//SI ES GET FAIG INDEX I AUTODINDEX
+		if (method == "GET")
+			this->handleIndexes(path);
+		//SI ES DELETE I ES UNA LOCATION
+		else if (method == "DELETE")
+			this->setBadThrow("403", "Forbidden");
+	}
+	// EN CAS DE QUE SIGUI POST I NO ACABI EN '/' (ES POT CAMBIAR)
+	else if (method == "POST")
+		this->setBadThrow("403", "Forbidden");
+
 	//Reset length of path after appending the index
 	len = path.length();
 
@@ -407,8 +417,6 @@ void Response::sendResponseMsg(int socketFd)
 					this->doAutoIndex(path);
 				else
 					this->doGet(path);
-
-				std::cout << this->bodySize << this->body << '\n';
 			}
 			else if (method == "DELETE")
 			{
@@ -418,16 +426,41 @@ void Response::sendResponseMsg(int socketFd)
 			}
 			else if (method == "POST")
 			{
-				// EL POST SE TIENE QUE MEJORAR
-				int fdPath;
+				if (access(path, F_OK) < 0)
+					this->setBadThrow("404", "Not Found");
 
-				if ((fdPath = open(path, O_CREAT | O_NONBLOCK | O_EXCL)) < 0)
+				//FIND FILE NAME
+				std::string fileName = "default";
+
+				std::string tmpPath(path);
+				tmpPath.append(fileName);
+
+				if (access(path, F_OK) < 0)
+				//FILE ALREDY EXISTS
 				{
-					if (errno == EEXIST)
+					if (access(path, W_OK) < 0)
 						this->setBadThrow("403", "Forbidden");
-					this->setBadThrow("500", "Internal Server Error");
+					std::ofstream pathFile(path, std::ios::binary | std::ios::app);
+					this->doPost(pathFile);
 				}
-				close(fdPath);
+				else
+				//FILE DOESNT EXIST
+				{
+					if (access(path, W_OK) < 0)
+						this->setBadThrow("403", "Forbidden");
+					std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
+					this->doPost(pathFile);
+				}
+				// EL POST SE TIENE QUE MEJORAR
+				// int fdPath;
+
+				// if ((fdPath = open(path, O_CREAT | O_NONBLOCK | O_EXCL)) < 0)
+				// {
+				// 	if (errno == EEXIST)
+				// 		this->setBadThrow("403", "Forbidden");
+				// 	this->setBadThrow("500", "Internal Server Error");
+				// }
+				// close(fdPath);
 			}
 		}
 	}
@@ -455,6 +488,14 @@ void	Response::doGet(char *path)
 
 	pathFile.seekg(0, std::ios::beg);
 	pathFile.read(this->body, this->bodySize);
+	
+	pathFile.close();
+}
+
+void	Response::doPost(std::ofstream &pathFile)
+{
+	if (!pathFile.is_open())
+		this->setBadThrow("500", "Internal Server Error");
 	
 	pathFile.close();
 }

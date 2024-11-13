@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <h1>Upload a JPG Image</h1>
+    <form id="uploadForm">
+        <label for="image">Select a JPG image to upload:</label>
+        <input type="file" id="image" name="image" accept=".jpg, .jpeg" required>
+        <br><br>
+        <button type="submit">Upload!</button>
+    </form>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('image');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const response = await fetch('http://localhost/uploads', { method: 'POST', headers: {'Content-Type': 'image/jpeg', 'Content-Length': file.size ,'Filename': file.name}, body: file });
+
+            if (response.ok) {
+                alert("Success when uploading image! :))");
+            } else {
+                alert("Error when uploading image! :((");
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -72,5 +72,6 @@ public:
 	std::string setResponseHead(std::string &resp);
 	void sendResponseMsg(int socketFd);
 	void doGet(char *path);
+	void doPost(std::ofstream &pathFile);
 	void doAutoIndex(char *path);
 };
