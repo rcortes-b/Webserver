@@ -70,3 +70,8 @@ std::string Petition::getType(void)
 {
 	return (this->type);
 }
+
+std::string Petition::getHeaders(void)
+{
+	return (this->headers);
+}

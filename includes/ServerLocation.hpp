@@ -41,6 +41,7 @@ class ServerLocation {
 			void	setAutoIndex( std::string line );
 			void	setAutoIndex( unsigned int num );
 			void	setIndex( std::string line );
+			void	setIndexSimple(std::string line);
 			void	setCgi( std::string line );
 
 			std::string					&getRoute( void );

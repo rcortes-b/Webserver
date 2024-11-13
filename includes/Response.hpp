@@ -70,6 +70,7 @@ public:
 	void setBadThrow(std::string statusCode, std::string statusMsg);
 	void setRedirectThrow(std::string host);
 	std::string setResponseHead(std::string &resp);
+	void setFileName(std::string &newPath);
 	void sendResponseMsg(int socketFd);
 	void doGet(char *path);
 	void doPost(std::ofstream &pathFile);

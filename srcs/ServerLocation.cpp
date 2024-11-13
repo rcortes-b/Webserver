@@ -145,6 +145,14 @@ void	ServerLocation::setRootSimple(std::string line)
 	_isDefRoot = true;
 }
 
+void	ServerLocation::setIndexSimple(std::string line)
+{
+	if (_isDefIndex)
+		throw ThrowError("Error: Index has been already defined");
+	this->_index = line;
+	_isDefIndex = true;
+}
+
 void	ServerLocation::setAutoIndex(std::string line)
 {
 	if (_isDefAutoIndex)

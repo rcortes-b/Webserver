@@ -29,4 +29,5 @@ public:
 	std::string getPath(void);
 	std::string getMethod(void);
 	std::string getType(void);
+	std::string getHeaders(void);
 };

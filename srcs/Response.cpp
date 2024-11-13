@@ -171,7 +171,7 @@ void	Response::setLocation(void)
 	if (end == std::string::npos)
 	{
 		this->location.setRootSimple(this->server.getRoot());
-		this->location.setIndex(this->server.getIndex());
+		this->location.setIndexSimple(this->server.getIndex());
 		this->location.setAutoIndex(this->server.getAutoIndex());
 		return;
 	}
@@ -244,6 +244,7 @@ void Response::handlePath(std::string path)
 
 	//Reset length of path after appending the index
 	len = path.length();
+
 
 	if (len > 4 && path[len - 5] == '.' && path[len - 4] == 'h' && path[len - 3] == 't' && path[len - 2] == 'm' && path[len - 1] == 'l')
 	{
@@ -430,10 +431,9 @@ void Response::sendResponseMsg(int socketFd)
 					this->setBadThrow("404", "Not Found");
 
 				//FIND FILE NAME
-				std::string fileName = "default";
-
-				std::string tmpPath(path);
-				tmpPath.append(fileName);
+				std::string newPath(path);
+				this->setFileName(newPath);
+				path = const_cast<char *>(newPath.c_str());
 
 				if (access(path, F_OK) < 0)
 				//FILE ALREDY EXISTS
@@ -492,10 +492,47 @@ void	Response::doGet(char *path)
 	pathFile.close();
 }
 
+void	Response::setFileName(std::string &newPath)
+{
+	unsigned long start;
+	unsigned long end;
+	std::string petitionType = this->petition.getType();
+	std::string headers = this->petition.getHeaders();
+	std::string fileName = "default";
+
+	if ((start = headers.find("Filename:")) != std::string::npos)
+	{
+		start += 13;
+		if ((end = headers.find("\r\n")) == std::string::npos)
+			this->setBadThrow("400", "Bad Request");
+		fileName = headers.substr(start, end);
+	}
+
+	if (petitionType == "text/html")
+		fileName.append(".html");
+	else if (petitionType == "image/jpeg")
+		fileName.append(".jpg");
+	else if (petitionType == "text/javascript")
+		fileName.append(".js");
+	else if (petitionType == "text/css")
+		fileName.append(".css");
+	else if (petitionType == "image/x-icon")
+		fileName.append(".ico");
+	else if (petitionType == "text/plain")
+		fileName.append(".txt");
+	else
+		this->setBadThrow("415", "Unsuppported Media Type");
+
+	newPath.append(fileName);
+	
+}
+
 void	Response::doPost(std::ofstream &pathFile)
 {
 	if (!pathFile.is_open())
 		this->setBadThrow("500", "Internal Server Error");
 	
+
+
 	pathFile.close();
 }
