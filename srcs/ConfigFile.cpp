@@ -277,15 +277,20 @@ void	update_backlimit(std::string &line, unsigned int pos, unsigned int &back_li
 bool	get_AutoIndex(std::string &line, unsigned int &autoindex)
 {
 	unsigned int	i = 0;
-
+	unsigned int	front = 0;
+	while (std::isspace(line[i]))
+		i++;
+	front = i;
 	while (i < line.size() && !std::isspace(line[i]) && line[i] != ',' && line[i] != ';')
 		i++;
-	if (line.substr(0, i) =="ON")
+	if (line.substr(front, i - front) == "ON")
 		autoindex = ON;
 	else if (line.substr(0, i) == "OFF")
 		autoindex = OFF;
-	else
+	else {
+		std::cout << line << " " <<  i <<line.substr(0, 1) << std::endl;
 		return false;
+	}
 	if (!is_the_end(&line[i]))
 		return false;
 	return true;
