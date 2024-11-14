@@ -181,7 +181,7 @@ void	Response::setLocation(void)
 	{
 		std::string locationRoute = (*it).getRoute();
 		if (path == locationRoute)
-		{	
+		{
 			this->location = *it;
 			if (!this->location.getRedirect().empty())
 				this->setRedirectThrow(this->location.getRedirect());
@@ -221,7 +221,6 @@ void Response::handlePath(std::string path)
 
 	//Reset length of path after appending the /
 	len = path.length();
-
 	//Set location
 	this->setLocation();
 	//Check for the alredy configured method
