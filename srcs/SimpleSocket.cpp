@@ -128,7 +128,7 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig
 	else if (petition.find("\n\n") != std::string::npos)
 	{
 		ssize_t start = petition.find("\n\n") + 2;
-		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], MAX_BUFFER_SIZE - start))
+		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], bytesRead - start))
 			return (1);
 		else
 			return (2);
