@@ -94,9 +94,9 @@ int	SimpleSocket::acceptConnection(void)
 int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig &server)
 {
 	std::cout << "BEFORE READ PETITION" << '\n';
-	char buffer[MAX_BUFFER_SIZE];
+	char buffer[MAX_BUFFER_SIZE + 1];
 	int	bytesRead;
-	std::memset(buffer, 0, MAX_BUFFER_SIZE);
+	std::memset(buffer, 0, MAX_BUFFER_SIZE + 1);
 
 	// SI VOLEM FER MULTIPLEXING (HTTP/2) PODIEM FER UN FILL CADA COP QUE LLEGIM UNA PETICIO I QUE EL PARE ES QUEDI ESCOLTANT
 	bytesRead = recv(clientFd, buffer, MAX_BUFFER_SIZE, 0);
@@ -110,12 +110,24 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig
 	//int token = -1; what is this
 
 	if (petition.find("\r\n\r\n") != std::string::npos)
-		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd, server))
+	{
+		//JUST A TEST THAT WORKS
+		// std::cout << "FOUND in " << start << '\n';
+		// std::cout << "char *test: " << &buffer[start] << " testSize: " << MAX_BUFFER_SIZE - start << '\n';
+		// std::ofstream pathFile("./www/web2/uploads/testFINAL.jpg", std::ios::binary | std::ios::trunc);
+		// pathFile.write(&buffer[start], MAX_BUFFER_SIZE - start);
+		// pathFile.close();
+		//FINS AQUI
+		ssize_t start = petition.find("\r\n\r\n") + 4;
+		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd, server, &buffer[start], MAX_BUFFER_SIZE - start))
 			return (1);
 		else
 			return (2);
-	else if (petition.find("\n\n") != std::string::npos) {
-		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server))
+	}
+	else if (petition.find("\n\n") != std::string::npos)
+	{
+		ssize_t start = petition.find("\n\n") + 2;
+		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], MAX_BUFFER_SIZE - start))
 			return (1);
 		else
 			return (2);
@@ -123,22 +135,15 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig
 
 	std::cout << "AFTER READ PETICION" << '\n';
 	return (0);
-	
-	// SOLO PARA TEST EL DE ARRIBA ES EL BUENO
-	// std::string str_buffer(buffer);
-	// petition.append(str_buffer);
-	// std::cout << "AFTER READ PETICION" << '\n' << petition << '\n';
-	// std::cout << "PETICION:\n" << petition << '\n';
-	// handlePetition(petition, clientFd);
-	// return (2); 
 }
 
-int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server)
+int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server, char *bodyContent, ssize_t bodySize)
 {
 	size_t token_pos = petition.find(token);
-	std::string header = petition.substr(0, token_pos);
-	std::string body = petition.substr(token_pos + token.length());
+	std::string header = petition.substr(0, token_pos + token.length());
+
 	u_long content_len = 0;
+	char *buffer = NULL;
 	size_t start = header.find("Content-Length:");
 	if (start != std::string::npos)
 	{
@@ -146,18 +151,31 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 		start = start + 15;
 		if ((end = header.find("\r\n")) == std::string::npos && (end = header.find("\n")) == std::string::npos)
 			return (1);
-		content_len = strToulNum(header.substr(start, end)); //std::stoul(header.substr(start, end)); puede llegar un numero negativo o algun error?? la custom func para sustituir stoul no contemple errores
-	}
+		content_len = strToulNum(header.substr(start, end - start)) - bodySize;
 
-	char buffer[content_len + 1];
-	if (content_len > 0)
-		recv(clientFd, buffer, content_len, 0);
+		char *buffer = new char[bodySize + content_len];
+		std::memcpy(buffer, bodyContent, bodySize);
+		u_long totalBytes = 0;
+		while (totalBytes < content_len)
+		{
+			ssize_t readedBytes = recv(clientFd, &buffer[bodySize + totalBytes], content_len, 0);	
+			if (readedBytes <= 0)
+				break;
+
+			totalBytes += readedBytes;
+		}
+	}
 	
-	buffer[content_len + 1] = '\0';
-	std::string next_body(buffer);
-	petition = header + body + next_body;
-	std::cout << "PETICION:\n" << petition << '\n';
-	handlePetition(petition, clientFd, server);
+	petition = header;
+	std::cout << "PETICION:\n" << header;
+	if (buffer)
+		std::cout << buffer;
+	std::cout << '\n';
+
+	handlePetition(petition, buffer, bodySize + content_len, clientFd, server);
+
+	if (buffer)
+		delete[] buffer;
 	return (0);
 }
 

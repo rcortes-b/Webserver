@@ -344,7 +344,9 @@ unsigned long	strToulNum(std::string str)
 	unsigned long	num = 0;
 
 	for (unsigned int i = 0; i < str.size(); i++) {
-		num = num * 10 + (str[i] - '0');
+
+		if (std::isdigit(str[i]))
+			num = num * 10 + (str[i] - '0');
 	}
 	return num;
 }

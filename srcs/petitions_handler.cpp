@@ -1,13 +1,13 @@
 # include "../includes/Response.hpp"
 # include "../includes/ServerConfig.hpp"
 
-void handlePetition(std::string petition, int socketFd, ServerConfig &server)
+void	handlePetition(std::string header, char* bodyContent, ssize_t bodySize, int socketFd, ServerConfig &server)
 {
 	Response resp(server);
 
 	try
 	{		
-		resp.setUp(petition);
+		resp.setUp(header, bodyContent, bodySize);
 	}
 	catch(const std::exception &e) { }
 

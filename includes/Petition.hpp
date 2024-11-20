@@ -15,6 +15,8 @@ private:
 	std::string protocol;
 	std::string type;
 	std::string headers;
+	char *bodyContent;
+	ssize_t bodySize;
 public:
 	Petition();
 	Petition(const Petition &other);
@@ -26,8 +28,12 @@ public:
 	void setProtocol(std::string protocol);
 	void setType(std::string type);
 	void setHeaders(std::string headers);
+	void setBodyContent(char *bodyContent);
+	void setBodySize(ssize_t bodySize);
 	std::string getPath(void);
 	std::string getMethod(void);
 	std::string getType(void);
 	std::string getHeaders(void);
+	char *getBodyContent(void);
+	ssize_t getBodySize(void);
 };

@@ -12,6 +12,8 @@ Petition::Petition(const Petition &other)
 	this->protocol = other.protocol;
 	this->type = other.type;
 	this->headers = other.headers;
+	this->bodyContent = other.bodyContent;
+	this->bodySize = other.bodySize;
 }
 
 Petition &Petition::operator=(const Petition &other)
@@ -23,6 +25,8 @@ Petition &Petition::operator=(const Petition &other)
 		this->protocol = other.protocol;
 		this->type = other.type;
 		this->headers = other.headers;
+		this->bodyContent = other.bodyContent;
+		this->bodySize = other.bodySize;
 	}
 	return (*this);
 }
@@ -56,6 +60,16 @@ void	Petition::setHeaders(std::string headers)
 	this->headers = headers;
 }
 
+void	Petition::setBodyContent(char *bodyContent)
+{
+	this->bodyContent = bodyContent;
+}
+
+void	Petition::setBodySize(ssize_t bodySize)
+{
+	this->bodySize = bodySize;
+}
+
 std::string Petition::getPath(void)
 {
 	return (this->path);
@@ -74,4 +88,14 @@ std::string Petition::getType(void)
 std::string Petition::getHeaders(void)
 {
 	return (this->headers);
+}
+
+char *Petition::getBodyContent(void)
+{
+	return (this->bodyContent);
+}
+
+ssize_t	Petition::getBodySize(void)
+{
+	return (this->bodySize);
 }

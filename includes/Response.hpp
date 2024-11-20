@@ -3,7 +3,7 @@
 
 # include <dirent.h>
 
-void	handlePetition(std::string petition, int socketFd, ServerConfig &server);
+void	handlePetition(std::string header, char* bodyContent, ssize_t bodySize, int socketFd, ServerConfig &server);
 
 class BadPetition: public std::exception
 {
@@ -66,7 +66,7 @@ public:
 	~Response();
 
 
-	void setUp(std::string petition);
+	void setUp(std::string header, char *bodyContent, ssize_t bodySize);
 	void setBadThrow(std::string statusCode, std::string statusMsg);
 	void setRedirectThrow(std::string host);
 	std::string setResponseHead(std::string &resp);

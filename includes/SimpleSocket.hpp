@@ -69,7 +69,7 @@ public:
 	ServerConfig *getServer(void) const;
 	int acceptConnection(void);
 	static int	readPetition(int clientFd, std::string &petition, ServerConfig &server);
-	static int	readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server);
+	static int	readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server, char *bodyContent, ssize_t bodySize);
 	void clearData(void);
 	int	getServerSocket(void) const;
 

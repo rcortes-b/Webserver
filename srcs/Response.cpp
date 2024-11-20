@@ -78,7 +78,8 @@ Response &Response::operator=(Response &other)
 
 Response::~Response()
 {
-	delete[] this->body;
+	if (this->body)
+		delete[] this->body;
 }
 
 void	Response::setRedirectThrow(std::string host)
@@ -115,13 +116,13 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	throw BadPetition();
 }
 
-void	Response::setUp(std::string petition)
+void	Response::setUp(std::string header, char *bodyContent, ssize_t bodySize)
 {
 	int token;
 	
-	if (((unsigned long)(token = petition.find("\r\n"))) == std::string::npos)
+	if (((unsigned long)(token = header.find("\r\n"))) == std::string::npos)
 		this->setBadThrow("400", "Bad Request");
-	std::string statusLine = petition.substr(0, token + 2);
+	std::string statusLine = header.substr(0, token + 2);
 	
 	int from;
 	for (size_t i = 0; i < 3; i++)
@@ -156,11 +157,19 @@ void	Response::setUp(std::string petition)
 			statusLine = statusLine.substr(token);
 		}
 	}
-	if (((unsigned long)(from = statusLine.find("\0"))) == std::string::npos)
+	if (((unsigned long)(from = header.find("\r\n"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
-	
-	std::string headers = petition.substr(from);
+	from += 2;
+
+	if (((unsigned long)(token = header.find("\r\n\r\n", from))) == std::string::npos)
+		this->setBadThrow("400", "Bad Request");
+	token += 4;
+
+	std::string headers = header.substr(from, token - from);
 	this->handleHeaders(headers);
+	
+	this->petition.setBodyContent(bodyContent);
+	this->petition.setBodySize(bodySize);
 }
 
 void	Response::setLocation(void)
@@ -236,6 +245,8 @@ void Response::handlePath(std::string path)
 		//SI ES DELETE I ES UNA LOCATION
 		else if (method == "DELETE")
 			this->setBadThrow("403", "Forbidden");
+		else if (method == "POST")
+			return;
 	}
 	// EN CAS DE QUE SIGUI POST I NO ACABI EN '/' (ES POT CAMBIAR)
 	else if (method == "POST")
@@ -266,6 +277,11 @@ void Response::handlePath(std::string path)
 		this->petition.setPath(path);
 		this->contentType = "text/css";
 	}
+	else if (len > 3 && path[len - 4] == '.' && path[len - 3] == 't' && path[len - 2] == 'x' && path[len - 1] == 't')
+	{
+		this->petition.setPath(path);
+		this->contentType = "text/plain";
+	}
 	else if (len > 3 && path[len - 4] == '.' && path[len - 3] == 'i' && path[len - 2] == 'c' && path[len - 1] == 'o')
 	{
 		this->petition.setPath(path);
@@ -279,10 +295,11 @@ void Response::doAutoIndex(char *path)
 {
 	DIR *dir = NULL;
 	struct dirent *entry;
+	std::string locationPath = this->location.getRoute() + "/";
 	std::string strBody = \
 	"<!DOCTYPE html>\n<html lang=\"en\">\n\t<h1>Index of ";
 	
-	strBody.append(this->location.getRoute());
+	strBody.append(locationPath);
 	strBody.append("</h1>\n\t<br></br>\n");
 
 	dir = opendir(path);
@@ -293,9 +310,9 @@ void Response::doAutoIndex(char *path)
 	{
 		std::string tmp(entry->d_name);
 		strBody.append("\t<a href=\"");
-		strBody.append(tmp);
+		strBody.append(locationPath + tmp);
 		strBody.append("\">");
-		strBody.append(tmp);
+		strBody.append(locationPath + tmp);
 		strBody.append("</a><br></br>");
 	}
 	
@@ -340,19 +357,26 @@ void Response::handleHeaders(std::string headers)
 	int end;
 	if (((unsigned long)(start = headers.find("Content-Length:"))) != std::string::npos)
 	{
-		start += 15;
-		if (((unsigned long)(end = headers.find("\r\n"))) != std::string::npos)
-			this->setBadThrow("400", "Bad Request");
+		std::string found = "Content-Length:";
+		start += found.length();
+		while (std::isspace(headers[start++]));
+		start--;
+		if (((unsigned long)(end = headers.find("\r\n", start))) == std::string::npos)
+			this->setBadThrow("411", "Length Required");
 		std::string maxBodySize = this->server.getMaxSize();
-		if (maxBodySize != "" && strToNum(headers.substr(start, end)) > strToNum(maxBodySize))
-			this->setBadThrow("406", "Not Acceptable");
+		//UP TO CHANGE
+		// if (maxBodySize != "" && strToulNum(headers.substr(start, end)) > strToulNum(maxBodySize))
+		// 	this->setBadThrow("406", "Not Acceptable");
 	}
 	if (((unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
 	{
-		start += 13;
-		if (((unsigned long)(end = headers.find("\r\n"))) == std::string::npos)
+		std::string found = "Content-Type:";
+		start += found.length();
+		while (std::isspace(headers[start++]));
+		start--;
+		if (((unsigned long)(end = headers.find("\r\n", start))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
-		this->petition.setType(headers.substr(start, end));
+		this->petition.setType(headers.substr(start, end - start));
 	}
 	this->petition.setHeaders(headers);
 }
@@ -434,7 +458,7 @@ void Response::sendResponseMsg(int socketFd)
 				this->setFileName(newPath);
 				path = const_cast<char *>(newPath.c_str());
 
-				if (access(path, F_OK) < 0)
+				if (access(path, F_OK) == 0)
 				//FILE ALREDY EXISTS
 				{
 					if (access(path, W_OK) < 0)
@@ -445,21 +469,11 @@ void Response::sendResponseMsg(int socketFd)
 				else
 				//FILE DOESNT EXIST
 				{
-					if (access(path, W_OK) < 0)
-						this->setBadThrow("403", "Forbidden");
+					this->statusCode = "201";
+					this->statusMsg = "Created";
 					std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
 					this->doPost(pathFile);
 				}
-				// EL POST SE TIENE QUE MEJORAR
-				// int fdPath;
-
-				// if ((fdPath = open(path, O_CREAT | O_NONBLOCK | O_EXCL)) < 0)
-				// {
-				// 	if (errno == EEXIST)
-				// 		this->setBadThrow("403", "Forbidden");
-				// 	this->setBadThrow("500", "Internal Server Error");
-				// }
-				// close(fdPath);
 			}
 		}
 	}
@@ -468,7 +482,10 @@ void Response::sendResponseMsg(int socketFd)
 	std::string respMsg;
 
 	this->setResponseHead(respMsg);
-	std::cout << "RESPONSE:\n" << respMsg.c_str() << this->body;
+	std::cout << "RESPONSE:\n" << respMsg.c_str();
+	if (this->body)
+		std::cout << this->body;
+	std::cout << '\n';
 	send(socketFd, respMsg.c_str(), respMsg.size(), 0);
 	if (this->body)
 		send(socketFd, this->body, this->bodySize, 0);
@@ -501,10 +518,13 @@ void	Response::setFileName(std::string &newPath)
 
 	if ((start = headers.find("Filename:")) != std::string::npos)
 	{
-		start += 13;
-		if ((end = headers.find("\r\n")) == std::string::npos)
+		start += 9;
+		while (std::isspace(headers[start++]));
+		start--;
+		
+		if ((end = headers.find("\r\n", start)) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
-		fileName = headers.substr(start, end);
+		fileName = headers.substr(start, end - start);
 	}
 
 	if (petitionType == "text/html")
@@ -531,7 +551,9 @@ void	Response::doPost(std::ofstream &pathFile)
 	if (!pathFile.is_open())
 		this->setBadThrow("500", "Internal Server Error");
 	
-
+	char *bodyPetition = this->petition.getBodyContent();
+	if (bodyPetition)
+	pathFile.write(bodyPetition, this->petition.getBodySize());
 
 	pathFile.close();
 }

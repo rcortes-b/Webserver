@@ -21,18 +21,33 @@
                 return;
             }
 
+          
             const formData = new FormData();
-            formData.append("image", file);
+            formData.append("image", file, file.name);
 
-            const response = await fetch('http://localhost/uploads', { method: 'POST', headers: {'Content-Type': 'image/jpeg', 'Content-Length': file.size ,'Filename': file.name}, body: file });
+            try {
+                const response = await fetch('http://localhost/uploads', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Referer': 'http://localhost:7002/',
+                        'Filename': file.name,
+                    }
+                });
 
-            if (response.ok) {
-                alert("Success when uploading image! :))");
-            } else {
-                alert("Error when uploading image! :((");
+                if (response.ok) {
+                    alert("Success when uploading image! :))");
+                } else {
+                    alert("Error when uploading image! :((");
+                }
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert("An error occurred during upload.");
             }
         });
     </script>
 </body>
 </html>
+
 
