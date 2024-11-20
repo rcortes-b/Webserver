@@ -1,7 +1,12 @@
+#ifndef RESPONSE_HPP
+# define RESPONSE_HPP
+
 # include "../includes/Petition.hpp"
 # include "../includes/ServerConfig.hpp"
 
 # include <dirent.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 void	handlePetition(std::string petition, int socketFd, ServerConfig &server);
 
@@ -75,4 +80,10 @@ public:
 	void doGet(char *path);
 	void doPost(std::ofstream &pathFile);
 	void doAutoIndex(char *path);
+	ServerLocation getLocation(void);
 };
+
+bool		is_cgi(Response &resp, char *path);
+std::string	doCgi (char *path);
+
+#endif

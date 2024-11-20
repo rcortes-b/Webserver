@@ -415,6 +415,11 @@ void Response::sendResponseMsg(int socketFd)
 				
 				if (strPath[strPath.length() - 1] == '/')
 					this->doAutoIndex(path);
+				else if (is_cgi(*this, path)) //to review
+				{
+					this->body = (char *)doCgi(path).c_str();
+					this->bodySize = std::strlen(body);
+				}
 				else
 					this->doGet(path);
 			}
@@ -473,6 +478,11 @@ void Response::sendResponseMsg(int socketFd)
 	if (this->body)
 		send(socketFd, this->body, this->bodySize, 0);
 }
+
+/*void	Response::doCgi(char *path)
+{
+	if (location.getCgiExtension())
+}*/
 
 void	Response::doGet(char *path)
 {
@@ -534,4 +544,9 @@ void	Response::doPost(std::ofstream &pathFile)
 
 
 	pathFile.close();
+}
+
+ServerLocation	Response::getLocation(void)
+{
+	return location;
 }
