@@ -8,7 +8,7 @@ HEAD = includes/ServerConfig.hpp includes/ConfigFile.hpp \
 		includes/SimpleSocket.hpp includes/Response.hpp \
 		includes/Petition.hpp includes/ServerLocation.hpp \
 		includes/ListeningSocket.hpp
-SRCS = srcs/main.cpp srcs/ConfigFile.cpp \
+SRCS = srcs/main.cpp srcs/ConfigFile.cpp srcs/CGI.cpp \
 		srcs/ServerConfig.cpp srcs/ServerLocation.cpp \
 		srcs/connections.cpp srcs/SimpleSocket.cpp \
 		srcs/Response.cpp srcs/Petition.cpp \
