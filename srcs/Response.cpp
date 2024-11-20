@@ -261,8 +261,8 @@ void Response::handlePath(std::string path)
 		this->petition.setPath(path);
 		this->contentType = "text/html";
 	}
-	else if (len > 3 && ((path[len - 4] == '.' && path[len - 3] == 'j' && path[len - 2] == 'p' && path[len - 1] == 'g') || 
-	(path[len - 3] == 'J' && path[len - 2] == 'P' && path[len - 1] == 'G')))
+	else if ((len > 3 && path[len - 4] == '.' && path[len - 3] == 'j' && path[len - 2] == 'p' && path[len - 1] == 'g') || 
+	(len > 4 && path[len - 5] == '.' && path[len - 4] == 'j' && path[len - 3] == 'p' && path[len - 2] == 'e' && path[len - 1] == 'g'))
 	{
 		this->petition.setPath(path);
 		this->contentType = "image/jpeg";			
@@ -458,6 +458,7 @@ void Response::sendResponseMsg(int socketFd)
 				this->setFileName(newPath);
 				path = const_cast<char *>(newPath.c_str());
 
+
 				if (access(path, F_OK) == 0)
 				//FILE ALREDY EXISTS
 				{
@@ -528,17 +529,35 @@ void	Response::setFileName(std::string &newPath)
 	}
 
 	if (petitionType == "text/html")
-		fileName.append(".html");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".html");
+	}
 	else if (petitionType == "image/jpeg")
-		fileName.append(".jpg");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".jpg");
+	}
 	else if (petitionType == "text/javascript")
-		fileName.append(".js");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".js");
+	}
 	else if (petitionType == "text/css")
-		fileName.append(".css");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".css");
+	}
 	else if (petitionType == "image/x-icon")
-		fileName.append(".ico");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".ico");
+	}
 	else if (petitionType == "text/plain")
-		fileName.append(".txt");
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".txt");
+	}
 	else
 		this->setBadThrow("415", "Unsuppported Media Type");
 
@@ -553,7 +572,7 @@ void	Response::doPost(std::ofstream &pathFile)
 	
 	char *bodyPetition = this->petition.getBodyContent();
 	if (bodyPetition)
-	pathFile.write(bodyPetition, this->petition.getBodySize());
+		pathFile.write(bodyPetition, this->petition.getBodySize());
 
 	pathFile.close();
 }

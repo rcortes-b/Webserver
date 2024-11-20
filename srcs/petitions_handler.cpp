@@ -6,10 +6,10 @@ void	handlePetition(std::string header, char* bodyContent, ssize_t bodySize, int
 	Response resp(server);
 
 	try
-	{		
+	{	
 		resp.setUp(header, bodyContent, bodySize);
 	}
-	catch(const std::exception &e) { }
+	catch(const std::exception &e) { }	
 
 	resp.sendResponseMsg(socketFd);
 }

@@ -21,18 +21,16 @@
                 return;
             }
 
-          
-            const formData = new FormData();
-            formData.append("image", file, file.name);
-
             try {
-                const response = await fetch('http://localhost/uploads', {
+                
+                const response = await fetch('http://localhost:7002/uploads', {
                     method: 'POST',
-                    body: formData,
                     headers: {
-                        'Referer': 'http://localhost:7002/',
-                        'Filename': file.name,
-                    }
+                        'Content-Type': 'image/jpeg', 
+                        'Referer': 'http://localhost:7002', 
+                        'Filename': file.name
+                    },
+                    body: file
                 });
 
                 if (response.ok) {
@@ -49,5 +47,6 @@
     </script>
 </body>
 </html>
+
 
 
