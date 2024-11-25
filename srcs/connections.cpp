@@ -86,7 +86,7 @@ void	connectServer(std::vector<ServerConfig> &server)
 				if (socketsMap.find(events[i].data.fd) != socketsMap.end())
 				{
 					t_epolle event;
-					event.events = EPOLLIN;
+					event.events = EPOLLIN | EPOLLET;
 					event.data.fd = socketsMap[events[i].data.fd].acceptConnection();
 					listeningMap[event.data.fd].setBuffer("");
 					listeningMap[event.data.fd].setServer(socketsMap[events[i].data.fd].getServer());

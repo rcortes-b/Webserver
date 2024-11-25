@@ -85,8 +85,8 @@ Response::~Response()
 void	Response::setRedirectThrow(std::string host)
 {
 	this->protocol = "HTTP/1.1";
-	this->statusCode = "302";
-	this->statusMsg = "Found";
+	this->statusCode = "308";
+	this->statusMsg = "Permanent Redirect";
 	this->heads.push_back("Location: " + host);
 	this->heads.push_back("Connection: close");
 	
@@ -104,10 +104,13 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	std::string path = "./www/errors/" + this->statusCode + ".html";
 	std::vector<std::string> errorPage = this->server.getErrorPage();
 	int errorPageSize = errorPage.size();
+	std::cout << "errorPageSize: " << errorPageSize << '\n';
 	for (int i = 0; i < errorPageSize - 1; i++)
 	{
+		std::cout << "this->statusCode: " << this->statusCode << " == " << "errorPage[i]: " << errorPage[i] << "    access(errorPage[errorPageSize - 1].c_str(), R_OK):___" << errorPage[errorPageSize - 1].c_str() << "___\n";
 		if (this->statusCode == errorPage[i] && access(errorPage[errorPageSize - 1].c_str(), R_OK) == 0)
 		{
+			std::cout << "Found: " << path << '\n';
 			path = errorPage[errorPageSize - 1];
 			break;
 		}
@@ -582,7 +585,13 @@ void	Response::doPost(std::ofstream &pathFile)
 	
 	char *bodyPetition = this->petition.getBodyContent();
 	if (bodyPetition)
+	{
 		pathFile.write(bodyPetition, this->petition.getBodySize());
+		if (pathFile.fail())
+			this->setBadThrow("500", "Internal Server Error");
+	
+		std::cout << "BODY_SIZE: " << this->petition.getBodySize() << '\n';
+	}
 
 	pathFile.close();
 }

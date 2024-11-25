@@ -119,7 +119,6 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig
 		// pathFile.close();
 		//FINS AQUI
 		ssize_t start = petition.find("\r\n\r\n") + 4;
-		std::cout << "MAX_BUFFERSIZE: " << MAX_BUFFER_SIZE << "   -   start: " << buffer[start] << '\n';
 		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd, server, &buffer[start], bytesRead - start))
 			return (1);
 		else
@@ -128,9 +127,12 @@ int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig
 	else if (petition.find("\n\n") != std::string::npos)
 	{
 		ssize_t start = petition.find("\n\n") + 2;
-		if (SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], bytesRead - start))
+		int status = SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], bytesRead - start);
+		if (status == 0)
+			return (0);
+		else if (status == 1)
 			return (1);
-		else
+		else if (status == 2)
 			return (2);
 	}
 
@@ -150,18 +152,26 @@ int SimpleSocket::readBody(std::string &petition, std::string token, int clientF
 	{
 		size_t end;
 		start = start + 15;
-		if ((end = header.find("\r\n")) == std::string::npos && (end = header.find("\n")) == std::string::npos)
+		if ((end = header.find("\r\n", start)) == std::string::npos && (end = header.find("\n", start)) == std::string::npos)
 			return (1);
-		std::cout << "bodySize: " << bodySize << "    content_len: " << strToulNum(header.substr(start, end - start)) << '\n';
 		content_len = strToulNum(header.substr(start, end - start)) - bodySize;
 		buffer = new char[bodySize + content_len];
 		std::memcpy(buffer, bodyContent, bodySize);
 		u_long totalBytes = 0;
+		int attempts = 0;
 		while (totalBytes < content_len)
 		{
-			ssize_t readedBytes = recv(clientFd, &buffer[bodySize + totalBytes], content_len, 0);	
-			if (readedBytes <= 0)
+			ssize_t readedBytes = recv(clientFd, &buffer[bodySize + totalBytes], 1024, 0);	
+			std::cout << "totalBytes: " << totalBytes << "    readedBytes: " <<  readedBytes << "   content_len: " << content_len << "  bodySize: " << bodySize << '\n';
+			if (readedBytes == 0)
 				break;
+			else if (readedBytes < 0)
+			{
+				if (attempts > 10000)
+					return (0);
+				attempts++;
+				continue;
+			}
 
 			totalBytes += readedBytes;
 		}
