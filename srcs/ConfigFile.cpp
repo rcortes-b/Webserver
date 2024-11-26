@@ -213,15 +213,13 @@ bool	is_valid_method(std::string const &method)
 
 bool	is_valid_extension(std::string const &extension)
 {
-	std::string	valid_extension[7] = { "html",
-									"css",
-									"jpg",
+	std::string	valid_extension[5] = { "c",
 									"js",
 									"py",
 									"php",
 									"sh"
 											};
-	for (unsigned int it = 0; it < 7; it++) {
+	for (unsigned int it = 0; it < 5; it++) {
 		if (valid_extension[it] == extension)
 			return true;
 	}
