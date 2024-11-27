@@ -301,7 +301,7 @@ bool	get_multiple_values(std::string &line, std::vector<std::string> &vector)
 	std::cout << "Line: " << line << std::endl;
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
-		if (i > 0 && std::isspace(line[i - 1]) && (std::isalnum(line[i]) || line[i] == '.') && line[i] != ',' && line[i] != ';')
+		if (i > 0 && std::isspace(line[i - 1]) && (std::isalnum(line[i]) || line[i] == '.' || line[i] == '-' || line[i] == '~') && line[i] != ',' && line[i] != ';')
 			front_limit = i;
 		while (i < line.size() && !std::isspace(line[i]) && line[i] != ';' && line[i] != ',')
 			i++;
