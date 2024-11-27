@@ -176,7 +176,7 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 							for (std::vector<std::string>::iterator itSn = (*it).getServerName().begin(); itSn != (*it).getServerName().end(); itSn++)
 								std::cout << "ServerName of server: " << *itSn << std::endl;
 							for (std::vector<std::string>::iterator itEp = (*it).getErrorPage().begin(); itEp != (*it).getErrorPage().end(); itEp++)
-							std::cout << "Error Page of server: " << *itEp << std::endl;
+								std::cout << "Error Page of server: " << *itEp << std::endl;
 							std::cout << "Index: " << (*it).getIndex() << std::endl;
 							std::cout << "Host: " << (*it).getHost() << std::endl;
 							std::cout << "Max Size: " << (*it).getMaxSize() << std::endl;
@@ -298,10 +298,10 @@ bool	get_multiple_values(std::string &line, std::vector<std::string> &vector)
 {
 	unsigned int	front_limit = 0;
 	unsigned int	back_limit = 0;
-
+	std::cout << "Line: " << line << std::endl;
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
-		if (i > 0 && std::isspace(line[i - 1]) && std::isalnum(line[i]) && line[i] != ',' && line[i] != ';')
+		if (i > 0 && std::isspace(line[i - 1]) && (std::isalnum(line[i]) || line[i] == '.') && line[i] != ',' && line[i] != ';')
 			front_limit = i;
 		while (i < line.size() && !std::isspace(line[i]) && line[i] != ';' && line[i] != ',')
 			i++;
