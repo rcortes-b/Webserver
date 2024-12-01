@@ -2,9 +2,9 @@
 #include "../includes/ServerConfig.hpp"
 #include "../includes/ServerLocation.hpp"
 
-static bool	path_has_extension(char *path, std::string cgi_ext[])
+static bool	path_has_extension(char *path, std::vector<std::string> cgi_ext)
 {
-	unsigned int vec_size = cgi_ext->size();
+	unsigned int vec_size = cgi_ext.size();
 	unsigned int rr_counter = 0;
 	unsigned int path_len = std::strlen(path);
 
@@ -23,13 +23,18 @@ static bool	path_has_extension(char *path, std::string cgi_ext[])
 
 bool	is_cgi(Response &resp, char *path)
 {
-	std::string cgi_ext[5] = {"js", "py", "sh", "php", "c"};
+	std::vector<std::string> cgi_ext;
+	cgi_ext.push_back("js");
+	cgi_ext.push_back("py");
+	cgi_ext.push_back("sh");
+	cgi_ext.push_back("php");
+	cgi_ext.push_back("c");
 	ServerLocation	location = resp.getLocation();
 	if (location.getCgiExtension().empty() || !path_has_extension(path, cgi_ext))
 		return false;
 	std::vector<std::string>::iterator it_beg = location.getCgiExtension().begin();
 	std::vector<std::string>::iterator it_end = location.getCgiExtension().end();
-	for (unsigned int i = 0; i < cgi_ext->size(); i++) {
+	for (unsigned int i = 0; i < cgi_ext.size(); i++) {
 		it_beg = location.getCgiExtension().begin();
 		while (it_beg != it_end) {
 			if (*it_beg == cgi_ext[i])

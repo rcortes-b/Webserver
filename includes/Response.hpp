@@ -40,6 +40,16 @@ public:
 		}
 };
 
+class CGI: public std::exception
+{
+public:
+	public:
+		virtual const char	*what() const throw()
+		{
+			return ("Executing CGI...");
+		}
+};
+
 class Response
 {
 private:

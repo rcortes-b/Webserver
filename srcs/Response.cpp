@@ -180,6 +180,7 @@ void	Response::setLocation(void)
 	std::string path = this->petition.getPath();
 	size_t start = path.find("/");
 	size_t end = path.find("/", start + 1);
+	std::cout << "PATH: " << path << '\n';
 	if (end == std::string::npos)
 	{
 		this->location.setRootSimple(this->server.getRoot());
@@ -239,7 +240,7 @@ void Response::handlePath(std::string path)
 	if (!this->location.getMethods().empty())
 		this->checkMethods();
 
-	std::string method = this->petition.getMethod() ;
+	std::string method = this->petition.getMethod();
 	if(len > 0 && path[len - 1] == '/')
 	{
 		//SI ES GET FAIG INDEX I AUTODINDEX
@@ -252,9 +253,13 @@ void Response::handlePath(std::string path)
 			return;
 	}
 	// EN CAS DE QUE SIGUI POST I NO ACABI EN '/' (ES POT CAMBIAR)
-	else if (method == "POST")
-		this->setBadThrow("403", "Forbidden");
-
+	else 
+	{
+		if (method == "GET" && !this->location.getCgiExtension().empty())
+			throw CGI();
+		else if (method == "POST")
+			this->setBadThrow("403", "Forbidden");
+	}
 	//Reset length of path after appending the index
 	len = path.length();
 
@@ -321,7 +326,7 @@ void Response::doAutoIndex(char *path)
 	
 	strBody.append("</html>\n");
 	this->bodySize = strBody.size();
-	this->body = new char[this->bodySize];
+	this->body = new char[this->bodySize + 1];
 	std::strcpy(this->body, strBody.c_str());
 	std::cout << this->body << '\n';
 	this->contentType = "text/html";
@@ -444,6 +449,7 @@ void Response::sendResponseMsg(int socketFd)
 					this->doAutoIndex(path);
 				else if (is_cgi(*this, path)) //to review
 				{
+					std::cout << "FOUND CGI!!!" << '\n';
 					this->body = (char *)doCgi(path).c_str();
 					this->bodySize = std::strlen(body);
 				}
