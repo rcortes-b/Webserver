@@ -76,7 +76,6 @@ int ListeningSocket::readHeader(int clientFd)
 	std::memset(buffer, 0, MAX_BUFFER_SIZE + 1);
 
 	bytesRead = recv(clientFd, buffer, MAX_BUFFER_SIZE, 0);
-
 	std::cout << "BYTES READ == " << bytesRead << '\n';
 	if (bytesRead < 0) //ERROR
 		return (1);

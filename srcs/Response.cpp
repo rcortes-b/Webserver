@@ -372,9 +372,9 @@ void Response::handleHeaders(std::string headers)
 		if (((unsigned long)(end = headers.find("\r\n", start))) == std::string::npos)
 			this->setBadThrow("411", "Length Required");
 		std::string maxBodySize = this->server.getMaxSize();
-		//UP TO CHANGE
-		// if (maxBodySize != "" && strToulNum(headers.substr(start, end)) > strToulNum(maxBodySize))
-		// 	this->setBadThrow("406", "Not Acceptable");
+		std::cout << "Content-Length: " << strToulNum(headers.substr(start, end - start)) << "   strToulNum(maxBodySize): " << strToulNum(maxBodySize) << '\n';
+		if (maxBodySize != "" && strToulNum(headers.substr(start, end - start)) > strToulNum(maxBodySize))
+			this->setBadThrow("413", "Content Too Large");
 	}
 	if (((unsigned long)(start = headers.find("Content-Type:"))) != std::string::npos)
 	{
@@ -487,9 +487,13 @@ void Response::sendResponseMsg(int socketFd)
 	if (this->body)
 		std::cout << this->body;
 	std::cout << '\n';
-	send(socketFd, respMsg.c_str(), respMsg.size(), 0);
+	if (send(socketFd, respMsg.c_str(), respMsg.size(), 0) < 0)
+		this->setBadThrow("500", "Internal Server Error");
 	if (this->body)
-		send(socketFd, this->body, this->bodySize, 0);
+	{
+		if (send(socketFd, this->body, this->bodySize, 0) < 0)
+			this->setBadThrow("500", "Internal Server Error");
+	}
 }
 
 void	Response::doGet(char *path)

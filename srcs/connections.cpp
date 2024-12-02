@@ -56,7 +56,7 @@ void	connectServer(std::vector<ServerConfig> &server)
 		for (it_socmap it = socketsMap.begin(); it != socketsMap.end(); it++)
 		{
 			t_epolle event;
-			event.events = EPOLLIN;
+			event.events = EPOLLIN | EPOLLOUT;
 			event.data.fd = it->second.getServerSocket();
 			std::cout << "fd: " << it->second.getServerSocket() << '\n';
 			/*epoll_ctl --> epoll_fd (direccion dnd estan la info de los epolls, EPOLL_CTL_ADD (para añadir el fd de la conexion abierta, es decir la conexion abierta por el puerto
@@ -86,7 +86,7 @@ void	connectServer(std::vector<ServerConfig> &server)
 				if (socketsMap.find(events[i].data.fd) != socketsMap.end())
 				{
 					t_epolle event;
-					event.events = EPOLLIN;
+					event.events = EPOLLIN | EPOLLOUT;
 					event.data.fd = socketsMap[events[i].data.fd].acceptConnection();
 					listeningMap[event.data.fd].setBufferStr("");
 					listeningMap[event.data.fd].setServer(socketsMap[events[i].data.fd].getServer());
@@ -97,7 +97,7 @@ void	connectServer(std::vector<ServerConfig> &server)
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
 						errorHandling(epoll_fd, socketsMap, listeningMap);
 				}
-				else //para llegar al else la tiene que aceptar en el if
+				else if (events[i].events & EPOLLIN) //para llegar al else la tiene que aceptar en el if
 				{
 					int clientFd = events[i].data.fd;
 					int status = listeningMap[clientFd].readPetition(clientFd);
