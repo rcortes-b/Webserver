@@ -467,28 +467,14 @@ void Response::sendResponseMsg(int socketFd)
 				if (access(path, F_OK) < 0)
 					this->setBadThrow("404", "Not Found");
 
-				//FIND FILE NAME
 				std::string newPath(path);
 				this->setFileName(newPath);
 				path = const_cast<char *>(newPath.c_str());
 
-
-				if (access(path, F_OK) == 0)
-				//FILE ALREDY EXISTS
-				{
-					if (access(path, W_OK) < 0)
-						this->setBadThrow("403", "Forbidden");
-					std::ofstream pathFile(path, std::ios::binary | std::ios::app);
-					this->doPost(pathFile);
-				}
-				else
-				//FILE DOESNT EXIST
-				{
-					this->statusCode = "201";
-					this->statusMsg = "Created";
-					std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
-					this->doPost(pathFile);
-				}
+				this->statusCode = "201";
+				this->statusMsg = "Created";
+				std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
+				this->doPost(pathFile);
 			}
 		}
 	}

@@ -86,9 +86,9 @@ void	connectServer(std::vector<ServerConfig> &server)
 				if (socketsMap.find(events[i].data.fd) != socketsMap.end())
 				{
 					t_epolle event;
-					event.events = EPOLLIN | EPOLLET;
+					event.events = EPOLLIN;
 					event.data.fd = socketsMap[events[i].data.fd].acceptConnection();
-					listeningMap[event.data.fd].setBuffer("");
+					listeningMap[event.data.fd].setBufferStr("");
 					listeningMap[event.data.fd].setServer(socketsMap[events[i].data.fd].getServer());
 					int flags = fcntl(event.data.fd, F_GETFL, 0);
 					flags |= O_NONBLOCK;
@@ -98,9 +98,9 @@ void	connectServer(std::vector<ServerConfig> &server)
 						errorHandling(epoll_fd, socketsMap, listeningMap);
 				}
 				else //para llegar al else la tiene que aceptar en el if
-				{	
+				{
 					int clientFd = events[i].data.fd;
-					int status = SimpleSocket::readPetition(clientFd, listeningMap[clientFd].getBuffer(), *(listeningMap[clientFd].getServer()));
+					int status = listeningMap[clientFd].readPetition(clientFd);
 					if (status == 1) // ERROR
 					{
 						listeningMap.erase(clientFd);
