@@ -2,7 +2,6 @@
 # include <iostream>
 # include <cstring>
 # include <string>
-# include <sys/socket.h>
 # include <netinet/in.h>
 # include <unistd.h>
 # include <sys/types.h>
@@ -19,7 +18,6 @@
 
 //placeholders
 # define MAX_CONNECTIONS 1024
-# define MAX_BUFFER_SIZE 1024
 
 class ServerConfig;
 
@@ -68,8 +66,8 @@ public:
 	void setServer(ServerConfig *server);
 	ServerConfig *getServer(void) const;
 	int acceptConnection(void);
-	static int	readPetition(int clientFd, std::string &petition, ServerConfig &server);
-	static int	readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server, char *bodyContent, ssize_t bodySize);
+	static int	readPetition(int clientFd, std::string &petition, ServerConfig &server, char *bodyBuffer, ssize_t &bodyBufferSize);
+	static int	readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server, char *bodyContent, ssize_t bodySize, char *bodyBuffer, ssize_t &bodyBufferSize);
 	void clearData(void);
 	int	getServerSocket(void) const;
 

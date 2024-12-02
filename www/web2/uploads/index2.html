@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <body>
-    <h1>Upload a JPG Image</h1>
+    <h1>Upload a TEXT file</h1>
     <form id="uploadForm">
-        <label for="image">Select a JPG image to upload:</label>
-        <input type="file" id="image" name="image" accept=".jpg, .jpeg" required>
+        <label for="text">Select a TEXT to upload:</label>
+        <input type="file" id="text" name="text" accept=".txt" required>
         <br><br>
         <button type="submit">Upload!</button>
 		<br><br>
-		<img id="uploadedImage" src="/uploads/default.jpeg" alt="default.jpeg">
+		<pre id="fileContent">Content Default</pre>
     </form>
 
     <script>
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const fileInput = document.getElementById('image');
+            const fileInput = document.getElementById('text');
             const file = fileInput.files[0];
 
             if (!file) {
@@ -28,7 +28,7 @@
                 const response = await fetch('http://localhost:7002/uploads', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'image/jpeg', 
+                        'Content-Type': 'text/plain', 
                         'Referer': 'http://localhost:7002', 
                         'Filename': file.name
                     },
@@ -36,11 +36,19 @@
                 });
 
                 if (response.ok) {
-                    const imagePath = `/uploads/${file.name}`;
-                    document.getElementById('uploadedImage').src = imagePath;
-                    alert("Success when uploading image! :))");
+					const responseText = await fetch(`http://localhost:7002/uploads/${file.name}`, {
+                    method: 'GET',
+                    headers: {
+                        'Referer': 'http://localhost:7002',
+                    }
+                	});;
+
+					const textContent = await responseText.text();
+
+					document.getElementById('fileContent').textContent = textContent;
+					alert("Text uploaded successfully!");
                 } else {
-                    alert("Error when uploading image! :((");
+                    alert("Error when uploading text! :((");
                 }
 
             } catch (error) {

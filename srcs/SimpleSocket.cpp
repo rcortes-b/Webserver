@@ -81,7 +81,6 @@ int	SimpleSocket::acceptConnection(void)
 {
 	int	adrrin_size = sizeof(t_sockaddr_in);
 	t_sockaddr_in clientadrr;
-	
 	std::cout << "ACCEPTING CONNECTION..." << '\n';
 	int clientSocket = accept(this->serverSocket, reinterpret_cast<t_sockaddr *>(&clientadrr), reinterpret_cast<socklen_t *>(&adrrin_size));
 	std::cout << "clientSocket = " << clientSocket << '\n';
@@ -89,105 +88,6 @@ int	SimpleSocket::acceptConnection(void)
 		throw SysError();
 	std::cout << "CONNECTION ACCEPTED!" << '\n';
 	return (clientSocket);
-}
-
-int	SimpleSocket::readPetition(int clientFd, std::string &petition, ServerConfig &server)
-{
-	std::cout << "BEFORE READ PETITION" << '\n';
-	char buffer[MAX_BUFFER_SIZE + 1];
-	int	bytesRead;
-	std::memset(buffer, 0, MAX_BUFFER_SIZE + 1);
-
-	// SI VOLEM FER MULTIPLEXING (HTTP/2) PODIEM FER UN FILL CADA COP QUE LLEGIM UNA PETICIO I QUE EL PARE ES QUEDI ESCOLTANT
-	bytesRead = recv(clientFd, buffer, MAX_BUFFER_SIZE, 0);
-	std::cout << "BYTES READ == " << bytesRead << '\n';
-	if (bytesRead < 0) //ERROR
-		return (1);
-	else if (bytesRead == 0) // CONNECTION CLOSED BY CLIENT
-		return (2);
-	std::string str_buffer(buffer);
-	petition.append(str_buffer);
-	//int token = -1; what is this
-
-	if (petition.find("\r\n\r\n") != std::string::npos)
-	{
-		//JUST A TEST THAT WORKS
-		// std::cout << "FOUND in " << start << '\n';
-		// std::cout << "char *test: " << &buffer[start] << " testSize: " << MAX_BUFFER_SIZE - start << '\n';
-		// std::ofstream pathFile("./www/web2/uploads/testFINAL.jpg", std::ios::binary | std::ios::trunc);
-		// pathFile.write(&buffer[start], MAX_BUFFER_SIZE - start);
-		// pathFile.close();
-		//FINS AQUI
-		ssize_t start = petition.find("\r\n\r\n") + 4;
-		if (SimpleSocket::readBody(petition, "\r\n\r\n", clientFd, server, &buffer[start], bytesRead - start))
-			return (1);
-		else
-			return (2);
-	}
-	else if (petition.find("\n\n") != std::string::npos)
-	{
-		ssize_t start = petition.find("\n\n") + 2;
-		int status = SimpleSocket::readBody(petition, "\n\n", clientFd, server, &buffer[start], bytesRead - start);
-		if (status == 0)
-			return (0);
-		else if (status == 1)
-			return (1);
-		else if (status == 2)
-			return (2);
-	}
-
-	std::cout << "AFTER READ PETICION" << '\n';
-	return (0);
-}
-
-int SimpleSocket::readBody(std::string &petition, std::string token, int clientFd, ServerConfig &server, char *bodyContent, ssize_t bodySize)
-{
-	size_t token_pos = petition.find(token);
-	std::string header = petition.substr(0, token_pos + token.length());
-
-	u_long content_len = 0;
-	char *buffer = NULL;
-	size_t start = header.find("Content-Length:");
-	if (start != std::string::npos)
-	{
-		size_t end;
-		start = start + 15;
-		if ((end = header.find("\r\n", start)) == std::string::npos && (end = header.find("\n", start)) == std::string::npos)
-			return (1);
-		content_len = strToulNum(header.substr(start, end - start)) - bodySize;
-		buffer = new char[bodySize + content_len];
-		std::memcpy(buffer, bodyContent, bodySize);
-		u_long totalBytes = 0;
-		int attempts = 0;
-		while (totalBytes < content_len)
-		{
-			ssize_t readedBytes = recv(clientFd, &buffer[bodySize + totalBytes], 1024, 0);	
-			std::cout << "totalBytes: " << totalBytes << "    readedBytes: " <<  readedBytes << "   content_len: " << content_len << "  bodySize: " << bodySize << '\n';
-			if (readedBytes == 0)
-				break;
-			else if (readedBytes < 0)
-			{
-				if (attempts > 10000)
-					return (0);
-				attempts++;
-				continue;
-			}
-
-			totalBytes += readedBytes;
-		}
-	}
-	
-	petition = header;
-	std::cout << "PETICION:\n" << header;
-	if (buffer)
-		std::cout << buffer;
-	std::cout << '\n';
-
-	handlePetition(petition, buffer, bodySize + content_len, clientFd, server);
-
-	if (buffer)
-		delete[] buffer;
-	return (0);
 }
 
 int	SimpleSocket::getServerSocket(void) const
