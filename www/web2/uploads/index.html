@@ -9,9 +9,13 @@
         <button type="submit">Upload!</button>
 		<br><br>
 		<img id="uploadedImage" src="/uploads/default.jpeg" alt="default.jpeg">
+		<br><br>
     </form>
+	<button id="deleteButton" type="button">Delete Upload!</button>
 
     <script>
+		generalImagePath = "/uploads/default.jpeg";
+
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
@@ -37,6 +41,7 @@
 
                 if (response.ok) {
                     const imagePath = `/uploads/${file.name}`;
+					generalImagePath = imagePath;
                     document.getElementById('uploadedImage').src = imagePath;
                     alert("Success when uploading image! :))");
                 } else {
@@ -48,6 +53,29 @@
                 alert("An error occurred during upload.");
             }
         });
+
+		document.getElementById("deleteButton").addEventListener('click', async function(event)
+		{
+			try {
+				const response = await fetch(generalImagePath, {
+						method: 'DELETE',
+						headers: {
+							'Referer': 'http://localhost:7002',
+						}
+					});
+
+				if (response.ok) {
+                    alert("Success when deleting image! :))");
+                } else {
+                    alert("Error when deleting image! :((");
+                }				
+			
+			} catch(error) {
+				console.error('Upload error:', error);
+                alert("An error occurred during delete.");
+			}
+
+		});
     </script>
 </body>
 </html>

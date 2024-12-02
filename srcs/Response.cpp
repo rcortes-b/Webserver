@@ -487,12 +487,13 @@ void Response::sendResponseMsg(int socketFd)
 	if (this->body)
 		std::cout << this->body;
 	std::cout << '\n';
-	if (send(socketFd, respMsg.c_str(), respMsg.size(), 0) < 0)
-		this->setBadThrow("500", "Internal Server Error");
+	if (send(socketFd, respMsg.c_str(), respMsg.size(), MSG_NOSIGNAL) < 0)
+		return;
 	if (this->body)
 	{
-		if (send(socketFd, this->body, this->bodySize, 0) < 0)
-			this->setBadThrow("500", "Internal Server Error");
+		std::cout << "sockeetFd: " << socketFd << "   this->body: " << this->body << "   this->bodySize: " << this->bodySize << '\n';
+		if (send(socketFd, this->body, 3, MSG_NOSIGNAL) < 0)
+			return;
 	}
 }
 
@@ -504,8 +505,8 @@ void	Response::doGet(char *path)
 	
 	this->bodySize = static_cast<int>(pathFile.tellg());
 	
-	this->body = new char [this->bodySize];
-	std::memset(this->body, '\0', this->bodySize);
+	this->body = new char [this->bodySize + 1];
+	std::memset(this->body, '\0', this->bodySize + 1);
 
 	pathFile.seekg(0, std::ios::beg);
 	pathFile.read(this->body, this->bodySize);
