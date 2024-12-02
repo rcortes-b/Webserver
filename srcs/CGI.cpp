@@ -45,7 +45,7 @@ bool	is_cgi(Response &resp, char *path)
 	return false;
 }
 
-std::string	doCgi (char *path)
+char	*doCgi (char *path)
 {
 	std::string body_content = "";
 	pid_t	pid;
@@ -67,15 +67,16 @@ std::string	doCgi (char *path)
 	else
 	{
 		close(fd[1]);
-		std::string	body = "";
 		int status;
 		waitpid(pid, &status, 0);
 		//read si el hijo ha finalizado el proceso correctamente
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 			std::string tmp_content = "";
 			int			read_status = 0;
-			while((read_status = read(fd[0], (char *)tmp_content.c_str(), 1)) > 0)
+			while((read_status = read(fd[0], (char *)tmp_content.c_str(), 1)) > 0) {
+				std::cout << "a";
 				body_content += tmp_content;
+			}
 			if (read_status == -1)
 				throw ThrowError("Error: Error reading from the pipe");
 		}
@@ -87,5 +88,8 @@ std::string	doCgi (char *path)
 		dup2(fd_out, STDOUT_FILENO); //check if this is necesary
 		close(fd_out); //check this out !!!!! no deberia estar mal !!!
 	}
-	return body_content;
+	char *body_ptr = new char[body_content.size() + 1];
+	std::strcpy(body_ptr, body_content.c_str());
+	std::cout << "\n\n\n\n\nhere\n" << body_content << "\nhere\n\n\n\n\n" << std::endl;
+	return body_ptr;
 }

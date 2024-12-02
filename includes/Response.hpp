@@ -94,6 +94,6 @@ public:
 };
 
 bool		is_cgi(Response &resp, char *path);
-std::string	doCgi (char *path);
+char		*doCgi (char *path);
 
 #endif

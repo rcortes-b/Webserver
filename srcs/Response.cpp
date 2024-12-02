@@ -40,7 +40,7 @@ Response::Response(Response &other)
 		{
 			if (this->body)
 				delete[] this->body;
-			this->body = new char [other.bodySize];
+			this->body = new char [other.bodySize + 1];
 		}
 		this->body[i] = other.body[i];
 	}
@@ -450,7 +450,7 @@ void Response::sendResponseMsg(int socketFd)
 				else if (is_cgi(*this, path)) //to review
 				{
 					std::cout << "FOUND CGI!!!" << '\n';
-					this->body = (char *)doCgi(path).c_str();
+					this->body = doCgi(path);
 					this->bodySize = std::strlen(body);
 				}
 				else
@@ -505,11 +505,6 @@ void Response::sendResponseMsg(int socketFd)
 	if (this->body)
 		send(socketFd, this->body, this->bodySize, 0);
 }
-
-/*void	Response::doCgi(char *path)
-{
-	if (location.getCgiExtension())
-}*/
 
 void	Response::doGet(char *path)
 {
