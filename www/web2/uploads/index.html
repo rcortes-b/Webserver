@@ -65,6 +65,9 @@
 					});
 
 				if (response.ok) {
+					const imagePath = '/uploads/default.jpeg';
+					generalImagePath = imagePath;
+                    document.getElementById('uploadedImage').src = imagePath;
                     alert("Success when deleting image! :))");
                 } else {
                     alert("Error when deleting image! :((");

@@ -180,7 +180,6 @@ void	Response::setLocation(void)
 	std::string path = this->petition.getPath();
 	size_t start = path.find("/");
 	size_t end = path.find("/", start + 1);
-	std::cout << "PATH: " << path << '\n';
 	if (end == std::string::npos)
 	{
 		this->location.setRootSimple(this->server.getRoot());
@@ -328,7 +327,6 @@ void Response::doAutoIndex(char *path)
 	this->bodySize = strBody.size();
 	this->body = new char[this->bodySize + 1];
 	std::strcpy(this->body, strBody.c_str());
-	std::cout << this->body << '\n';
 	this->contentType = "text/html";
 
 	closedir(dir);
@@ -491,7 +489,6 @@ void Response::sendResponseMsg(int socketFd)
 		return;
 	if (this->body)
 	{
-		std::cout << "sockeetFd: " << socketFd << "   this->body: " << this->body << "   this->bodySize: " << this->bodySize << '\n';
 		if (send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL) < 0)
 			return;
 	}
