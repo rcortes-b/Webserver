@@ -492,7 +492,7 @@ void Response::sendResponseMsg(int socketFd)
 	if (this->body)
 	{
 		std::cout << "sockeetFd: " << socketFd << "   this->body: " << this->body << "   this->bodySize: " << this->bodySize << '\n';
-		if (send(socketFd, this->body, 3, MSG_NOSIGNAL) < 0)
+		if (send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL) < 0)
 			return;
 	}
 }

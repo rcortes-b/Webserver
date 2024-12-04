@@ -71,12 +71,13 @@ char	*doCgi (char *path)
 		waitpid(pid, &status, 0);
 		//read si el hijo ha finalizado el proceso correctamente
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-			std::string tmp_content = "";
 			int			read_status = 0;
-			while((read_status = read(fd[0], (char *)tmp_content.c_str(), 1)) > 0) {
-				std::cout << "a";
-				body_content += tmp_content;
+			char buff[2];
+			while((read_status = read(fd[0], buff, 1)) > 0) {
+				buff[1] = '\0';
+				body_content += static_cast<std::string>(buff);
 			}
+			//delete hi;
 			if (read_status == -1)
 				throw ThrowError("Error: Error reading from the pipe");
 		}
