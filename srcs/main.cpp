@@ -9,6 +9,22 @@ ERROR MESSAGES
 	- "The file has not a valid format. \".conf format is required.\""
 */
 
+static void	check_servers_ports(std::vector<ServerConfig>	&servers)
+{
+	if (servers.size() == 1)
+		return ;
+	for (std::vector<ServerConfig>::iterator it = servers.begin(); it != servers.end() - 1; it++) {
+		for (std::vector<std::string>::iterator it_port = (*it).getPort().begin(); it_port != (*it).getPort().end(); it_port++) {
+			for (std::vector<ServerConfig>::iterator it2 = it + 1; it2 != servers.end(); it2++) {
+				for (std::vector<std::string>::iterator it_port2 = (*it2).getPort().begin(); it_port2 != (*it2).getPort().end(); it_port2++) {
+					if (*it_port == *it_port2)
+						throw ThrowError("Error: Multiple definitions of the same port in different servers");
+				}
+			}
+		}
+	}
+}
+
 static std::vector<ServerConfig>	parse_file(std::string &file)
 {
 	size_t	len = file.size();
@@ -41,7 +57,7 @@ int main(int argc, char **argv)
 		std::string file = argv[1];
 		std::vector<ServerConfig>	servers;
 		servers = parse_file(file);
-		//for (std::vector<ServerConfig>::iterator it = servers)
+		check_servers_ports(servers);
 		connectServer(servers);
 
 	} catch (const std::exception& e) {

@@ -322,6 +322,12 @@ bool	check_ports(std::vector<std::string> &vector)
 	std::vector<std::string>::iterator	it = vector.begin();
 	while (it != vector.end())
 	{
+		for (std::vector<std::string>::iterator	it2 = it + 1; it2 != vector.end(); it2++) {
+			if (it2 == vector.end())
+				break ;
+			if (*it2 == *it)
+				throw ThrowError("Error: Multiple definitions of the same port");
+		}
 		for (unsigned int i = 0; i < it->size(); i++)
 		{
 			if (!std::isdigit((*it)[i]))

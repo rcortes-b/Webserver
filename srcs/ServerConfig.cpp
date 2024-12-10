@@ -58,7 +58,7 @@ void	ServerConfig::setPort(std::string line)
 	if(!get_multiple_values(line, _port))
 		throw ThrowError("Error: Port is not valid");
 	else if (!check_ports(_port))
-		throw ThrowError("Port numbers are not valid");
+		throw ThrowError("Error: Port numbers are not valid");
 	_isDefPort = true;
 }
 
