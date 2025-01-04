@@ -162,7 +162,6 @@ void	Response::setUp(std::string header, char *bodyContent, ssize_t bodySize)
 	}
 	if (((unsigned long)(from = header.find("\r\n"))) == std::string::npos)
 			this->setBadThrow("400", "Bad Request");
-	from += 2;
 
 	if (((unsigned long)(token = header.find("\r\n\r\n", from))) == std::string::npos)
 		this->setBadThrow("400", "Bad Request");
@@ -560,9 +559,13 @@ void	Response::setFileName(std::string &newPath)
 		if (fileName.find(".") == std::string::npos)
 			fileName.append(".txt");
 	}
+	else if (petitionType == "plain/text")
+	{
+		if (fileName.find(".") == std::string::npos)
+			fileName.append(".txt");
+	}
 	else
 		this->setBadThrow("415", "Unsuppported Media Type");
-
 	newPath.append(fileName);
 	
 }

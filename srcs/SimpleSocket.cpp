@@ -21,6 +21,7 @@ void	SimpleSocket::setSocket(std::string port, std::string host)
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
+	
 	int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &this->addrinfo);
 	if (status != 0)
 	{

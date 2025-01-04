@@ -6,6 +6,7 @@ ListeningSocket::ListeningSocket()
 	this->server = NULL;
 	this->bufferChar = NULL;
 	this->bufferCharSize = 0;
+	this->bytesHeaderRead = 0;
 
 	this->firstBody = NULL;
 	this->firstBodySize = 0;
@@ -26,6 +27,7 @@ ListeningSocket &ListeningSocket::operator=(const ListeningSocket &other)
 	this->firstBody = other.firstBody;
 	this->firstBodySize = other.firstBodySize;
 	this->token = other.token;
+	this->bytesHeaderRead = other.bytesHeaderRead;
 
 	return (*this);
 }
@@ -81,6 +83,8 @@ int ListeningSocket::readHeader(int clientFd)
 		return (1);
 	else if (bytesRead == 0) // CONNECTION CLOSED BY CLIENT
 		return (2);
+	this->bytesHeaderRead += bytesRead;
+	std::cout << "bytesRead: " << bytesRead << '\n';
 	std::string str_buffer(buffer);
 	this->bufferStr.append(str_buffer);
 	//int token = -1; what is this
@@ -90,7 +94,7 @@ int ListeningSocket::readHeader(int clientFd)
 		ssize_t start = this->bufferStr.find("\r\n\r\n") + 4;
 		this->token = "\r\n\r\n";
 		this->firstBody = &buffer[start];
-		this->firstBodySize = bytesRead - start;
+		this->firstBodySize = this->bytesHeaderRead - start;
 		this->firstBody = new char[this->firstBodySize];
 		std::memcpy(this->firstBody, &buffer[start], this->firstBodySize);
 	}
@@ -99,7 +103,7 @@ int ListeningSocket::readHeader(int clientFd)
 		ssize_t start = this->bufferStr.find("\n\n") + 2;
 		this->token = "\n\n";
 		this->firstBody = &buffer[start];
-		this->firstBodySize = bytesRead - start;
+		this->firstBodySize = this->bytesHeaderRead - start;
 		this->firstBody = new char[this->firstBodySize];
 		std::memcpy(this->firstBody, &buffer[start], this->firstBodySize);
 	}
@@ -130,7 +134,7 @@ int ListeningSocket::readBody(int clientFd)
 		while (this->bufferCharSize < content_len)
 		{
 			ssize_t readedBytes = recv(clientFd, &this->bufferChar[this->bufferCharSize], 1024, 0);	
-			std::cout << "bodyBufferSize: " << bufferCharSize << "    readedBytes: " <<  readedBytes << "   content_len: " << content_len << "  bodySize: " << firstBodySize << '\n';
+			//std::cout << "bodyBufferSize: " << bufferCharSize << "    readedBytes: " <<  readedBytes << "   content_len: " << content_len << "  bodySize: " << firstBodySize << '\n';
 			if (readedBytes == 0)
 				break;
 			else if (readedBytes < 0)

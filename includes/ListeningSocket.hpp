@@ -11,6 +11,7 @@ class ListeningSocket
 private:
 	std::string bufferStr;
 	char		*bufferChar;
+	ssize_t		bytesHeaderRead;
 	ssize_t		bufferCharSize;
 	ServerConfig *server;
 
