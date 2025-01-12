@@ -2,6 +2,14 @@
 #include "../includes/ServerConfig.hpp"
 #include "../includes/ServerLocation.hpp"
 
+static pid_t	childPS = -1;
+
+static void	handleSignal(int sig)
+{
+	if (sig == SIGALRM && childPS > 0)
+		kill(childPS, SIGKILL);
+}
+
 static bool	path_has_extension(char *path, std::vector<std::string> cgi_ext)
 {
 	unsigned int vec_size = cgi_ext.size();
@@ -66,6 +74,9 @@ char	*doCgi (char *path)
 	}
 	else
 	{
+		childPS = pid;
+		alarm(5);
+		signal(SIGALRM, handleSignal);
 		close(fd[1]);
 		int status;
 		waitpid(pid, &status, 0);
@@ -81,13 +92,14 @@ char	*doCgi (char *path)
 			if (read_status == -1)
 				throw ThrowError("Error: Error reading from the pipe");
 		}
-			// while (read fd[0]...)
 
 		close(fd[0]);
 		dup2(fd_in, STDIN_FILENO); //check if this is necesary
 		close(fd_in); //check this out !!!!! no deberia estar mal !!!
 		dup2(fd_out, STDOUT_FILENO); //check if this is necesary
 		close(fd_out); //check this out !!!!! no deberia estar mal !!!
+		if (status == SIGKILL)
+			return NULL;
 	}
 	char *body_ptr = new char[body_content.size() + 1];
 	std::strcpy(body_ptr, body_content.c_str());

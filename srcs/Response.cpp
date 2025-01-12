@@ -115,6 +115,7 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 			break;
 		}
 	}
+	std::cout << "AAAAAAAAAAAAAAAAAA: " << path << '\n';
 	this->doGet(const_cast<char *>(path.c_str()));
 	throw BadPetition();
 }
@@ -448,6 +449,8 @@ void Response::sendResponseMsg(int socketFd)
 				{
 					std::cout << "FOUND CGI!!!" << '\n';
 					this->body = doCgi(path);
+					if (!this->body) 
+						this->setBadThrow("408", "Request Timeout");
 					this->bodySize = std::strlen(body);
 				}
 				else
@@ -488,6 +491,7 @@ void Response::sendResponseMsg(int socketFd)
 		return;
 	if (this->body)
 	{
+		std::cout  << "\n\n\n\n\n\n\nENTRA \n\n\n\n\n\n\n";
 		if (send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL) < 0)
 			return;
 	}
