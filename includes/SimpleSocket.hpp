@@ -62,7 +62,7 @@ public:
 	SimpleSocket &operator=(const SimpleSocket &other);
 	~SimpleSocket();
 
-	void setSocket(std::string port, std::string host);
+	int setSocket(std::string port, std::string host);
 	void setServer(ServerConfig *server);
 	ServerConfig *getServer(void) const;
 	int acceptConnection(void);

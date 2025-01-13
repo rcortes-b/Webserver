@@ -3,7 +3,7 @@
 
 # include "../includes/Petition.hpp"
 # include "../includes/ServerConfig.hpp"
-
+# include "../includes/CGI.hpp"
 # include <dirent.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -40,7 +40,7 @@ public:
 		}
 };
 
-class CGI: public std::exception
+class CGI_Exception: public std::exception
 {
 public:
 	public:
@@ -53,9 +53,10 @@ public:
 class Response
 {
 private:
-	Petition petition;
-	ServerConfig server;
-	ServerLocation location;
+	Petition		petition;
+	ServerConfig	server;
+	ServerLocation	location;
+	CGI				_cgi;
 	std::string	protocol;
 	std::string	statusCode;
 	std::string	statusMsg;

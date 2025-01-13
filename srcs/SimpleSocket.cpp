@@ -1,6 +1,7 @@
 # include "../includes/SimpleSocket.hpp"
 # include "../includes/Response.hpp"
 # include "../includes/ConfigFile.hpp"
+# include <stdlib.h>
 
 SimpleSocket::SimpleSocket()
 {
@@ -13,7 +14,7 @@ SimpleSocket::SimpleSocket(std::string port)
 	(void)port; //what is this
 }
 
-void	SimpleSocket::setSocket(std::string port, std::string host)
+int	SimpleSocket::setSocket(std::string port, std::string host)
 {
 	t_addrinfo hints;
 	int enable = 1;
@@ -26,7 +27,7 @@ void	SimpleSocket::setSocket(std::string port, std::string host)
 	if (status != 0)
 	{
 		std::cout << gai_strerror(status) << '\n';
-		throw NoMsgError();
+		return (1);
 	}
 
 	this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -46,6 +47,8 @@ void	SimpleSocket::setSocket(std::string port, std::string host)
 
 	if (listen(this->serverSocket, MAX_CONNECTIONS) < 0)
 		SysError();
+
+	return (0);
 }
 
 void SimpleSocket::setServer(ServerConfig *server)

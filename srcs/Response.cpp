@@ -1,6 +1,8 @@
 # include "../includes/Response.hpp"
 # include "../includes/ConfigFile.hpp"
 
+static bool	isActionForm = false;
+
 Response::Response()
 {
 	this->protocol = "HTTP/1.1";
@@ -115,7 +117,6 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 			break;
 		}
 	}
-	std::cout << "AAAAAAAAAAAAAAAAAA: " << path << '\n';
 	this->doGet(const_cast<char *>(path.c_str()));
 	throw BadPetition();
 }
@@ -136,7 +137,7 @@ void	Response::setUp(std::string header, char *bodyContent, ssize_t bodySize)
 		{
 			if (((unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
-
+			std::cout << statusLine << " separator " << statusLine.substr(from, token) << '\n';
 			std::string method = statusLine.substr(from, token);
 			this->handleMethod(method);
 			statusLine = statusLine.substr(++token);
@@ -148,6 +149,8 @@ void	Response::setUp(std::string header, char *bodyContent, ssize_t bodySize)
 
 			std::string path = statusLine.substr(from, token);
 			this->handlePath(path);
+			if (this->petition.getMethod() == "GET" && !this->location.getCgiExtension().empty())
+				throw CGI_Exception();
 			statusLine = statusLine.substr(++token);
 		}
 		else if (i == 2)
@@ -230,11 +233,12 @@ void Response::handlePath(std::string path)
 	if (len > 0 && path[len - 1] != '/' && path.find('.') == std::string::npos)
 		path.append("/");
 	this->petition.setPath(path);
-
 	//Reset length of path after appending the /
 	len = path.length();
 	//Set location
 	this->setLocation();
+	if (path.find('?') != std::string::npos)
+		return ;
 	//Check for the alredy configured method
 	if (!this->location.getMethods().empty())
 		this->checkMethods();
@@ -254,9 +258,9 @@ void Response::handlePath(std::string path)
 	// EN CAS DE QUE SIGUI POST I NO ACABI EN '/' (ES POT CAMBIAR)
 	else 
 	{
-		if (method == "GET" && !this->location.getCgiExtension().empty())
-			throw CGI();
-		else if (method == "POST")
+		// if (method == "GET" && !this->location.getCgiExtension().empty())
+		// 	throw CGI_Exception();
+		/*else */if (method == "POST" && !is_cgi(*this, (char*)path.c_str()))
 			this->setBadThrow("403", "Forbidden");
 	}
 	//Reset length of path after appending the index
@@ -294,7 +298,7 @@ void Response::handlePath(std::string path)
 		this->petition.setPath(path);
 		this->contentType = "image/x-icon";
 	}
-	else
+	else if (!is_cgi(*this, (char*)path.c_str()))
 		this->setBadThrow("415", "Unsuppported Media Type");
 }
 
@@ -411,7 +415,7 @@ std::string Response::setResponseHead(std::string &resp)
 
 	return (resp);
 }
-
+#include <stdlib.h>
 void Response::sendResponseMsg(int socketFd)
 {
 	// PARSE DEL PATH DEL ARXIU AMB access (que existexi i permisos)
@@ -434,21 +438,43 @@ void Response::sendResponseMsg(int socketFd)
 	
 	try
 	{
+		std::cout << "StatusCode: " << statusCode << "\n" << "Method: " << method << '\n';
 		if (this->statusCode == "200")
 		{
 			if (method == "GET")
 			{
+				if (std::strchr(path, '?'))
+				{
+					this->contentType = "text/html";
+					size_t len = std::strlen(path);
+					_cgi.getEnvironment(std::strchr(path, '?') + 1);
+					while (path[--len] != '?')
+						path[len] = '\0';
+					path[len] = '\0';
+				}
 				if (access(path, F_OK) < 0)
 					this->setBadThrow("404", "Not Found");
 				if (access(path, R_OK) < 0)
 					this->setBadThrow("403", "Forbidden");
-				
+				if (std::strlen(path) > 5 && !std::strcmp(&path[std::strlen(path) - 5], ".html")) {
+					std::ifstream f(path);
+					if (!f.is_open())
+						this->setBadThrow("500", "Error connecting to the requested page");
+					this->_cgi.check_for_action(f);
+					if (this->_cgi.getIsActionForm())
+						isActionForm = true;
+					f.close();
+				}
+				else
+					_cgi.setIsCgi(is_cgi(*this, path));
 				if (strPath[strPath.length() - 1] == '/')
 					this->doAutoIndex(path);
-				else if (is_cgi(*this, path)) //to review
+				else if (this->_cgi.getIsCgi()) //to review
 				{
 					std::cout << "FOUND CGI!!!" << '\n';
-					this->body = doCgi(path);
+					this->body = this->_cgi.doCgi(path);
+					if (isActionForm)
+						isActionForm = false;
 					if (!this->body) 
 						this->setBadThrow("408", "Request Timeout");
 					this->bodySize = std::strlen(body);
@@ -464,24 +490,32 @@ void Response::sendResponseMsg(int socketFd)
 			}
 			else if (method == "POST")
 			{
+				std::cerr << "SIONO: " << this->petition.getBodyContent() <<"\n";
 				if (access(path, F_OK) < 0)
 					this->setBadThrow("404", "Not Found");
-
-				std::string newPath(path);
-				this->setFileName(newPath);
-				path = const_cast<char *>(newPath.c_str());
-
-				this->statusCode = "201";
-				this->statusMsg = "Created";
-				std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
-				this->doPost(pathFile);
+				if (is_cgi(*this, path)) {
+					char pathi[this->petition.getBodySize() + 1];
+					pathi[this->petition.getBodySize()] = '\0';
+					std::memcpy(pathi, this->petition.getBodyContent(),this->petition.getBodySize());
+					_cgi.getEnvironment(pathi);
+					this->body = _cgi.doCgi(path);
+					this->bodySize = std::strlen(this->body);
+					this->contentType = "text/html";
+				}
+				else {
+					std::string newPath(path);
+					this->setFileName(newPath);
+					path = const_cast<char *>(newPath.c_str());
+					this->statusCode = "201";
+					this->statusMsg = "Created";
+					std::ofstream pathFile(path, std::ios::binary | std::ios::trunc);
+					this->doPost(pathFile);
+				}
 			}
 		}
 	}
 	catch(const std::exception& e) { }
-
 	std::string respMsg;
-
 	this->setResponseHead(respMsg);
 	std::cout << "RESPONSE:\n" << respMsg.c_str();
 	if (this->body)
@@ -491,7 +525,6 @@ void Response::sendResponseMsg(int socketFd)
 		return;
 	if (this->body)
 	{
-		std::cout  << "\n\n\n\n\n\n\nENTRA \n\n\n\n\n\n\n";
 		if (send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL) < 0)
 			return;
 	}
@@ -521,7 +554,8 @@ void	Response::setFileName(std::string &newPath)
 	std::string petitionType = this->petition.getType();
 	std::string headers = this->petition.getHeaders();
 	std::string fileName = "default";
-
+	if (isActionForm)
+		return ;
 	if ((start = headers.find("Filename:")) != std::string::npos)
 	{
 		start += 9;

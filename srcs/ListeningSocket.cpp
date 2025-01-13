@@ -147,7 +147,7 @@ int ListeningSocket::readBody(int clientFd)
 	this->bufferStr = header;
 	std::cout << "PETICION:\n" << header;
 	if (this->bufferChar)
-		std::cout << this->bufferChar;
+		std::cout << "asds: " <<this->bufferChar;
 	std::cout << '\n';
 
 	handlePetition(this->bufferStr, this->bufferChar, this->bufferCharSize, clientFd, *(this->server));

@@ -39,14 +39,17 @@ void	connectServer(std::vector<ServerConfig> &server)
 			socket.setServer(&(*it));
 			for (it_strvec it = serverPorts.begin(); it != serverPorts.end(); it++)
 			{
-				socket.setSocket(*it, serverHost); //tmp socket
+				if (socket.setSocket(*it, serverHost))
+				{
+					for (it_socmap it = socketsMap.begin(); it != socketsMap.end(); it++)
+						it->second.clearData();
+
+					throw NoMsgError();
+				} //tmp socket
 				socketsMap[socket.getServerSocket()] = socket; //save socket
 			}
 		}
-		/*DSADASDASDASDFDADSFADSFADSFDSFASFDSFDSFDSFDSDFSDFSD:v ñldfkblkdf,blñdf,bldf,bçñdgf ,
-		ñvf ,ñ
-		lblfd
-		CHECK PARA INVESTIGAR*/
+	
 		t_epolle events[MAX_CONNECTIONS];
 		int event_count;
 		int epoll_fd = epoll_create(MAX_CONNECTIONS); // PARA INVESTIGAR, este int almacena la info de tantos epolls(fd) como definidos como parametro en epoll_create
@@ -78,11 +81,8 @@ void	connectServer(std::vector<ServerConfig> &server)
 				break;
 			if (event_count == -1)
 				errorHandling(epoll_fd, socketsMap, listeningMap);
-			std::cout << "EPOLL FOUND! count: " << event_count << '\n';
-
 			for (int i = 0; i < event_count; i++)
 			{
-				std::cout << events[i].data.fd << '\n';
 				if (socketsMap.find(events[i].data.fd) != socketsMap.end())
 				{
 					t_epolle event;
