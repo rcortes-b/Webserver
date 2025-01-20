@@ -9,11 +9,6 @@ SimpleSocket::SimpleSocket()
 	this->addrinfo = NULL;
 }
 
-SimpleSocket::SimpleSocket(std::string port)
-{
-	(void)port; //what is this
-}
-
 int	SimpleSocket::setSocket(std::string port, std::string host)
 {
 	t_addrinfo hints;
@@ -26,7 +21,7 @@ int	SimpleSocket::setSocket(std::string port, std::string host)
 	int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &this->addrinfo);
 	if (status != 0)
 	{
-		std::cout << gai_strerror(status) << '\n';
+		std::cerr << gai_strerror(status) << '\n';
 		return (1);
 	}
 
@@ -85,12 +80,11 @@ int	SimpleSocket::acceptConnection(void)
 {
 	int	adrrin_size = sizeof(t_sockaddr_in);
 	t_sockaddr_in clientadrr;
-	std::cout << "ACCEPTING CONNECTION..." << '\n';
 	int clientSocket = accept(this->serverSocket, reinterpret_cast<t_sockaddr *>(&clientadrr), reinterpret_cast<socklen_t *>(&adrrin_size));
-	std::cout << "clientSocket = " << clientSocket << '\n';
+
 	if (clientSocket < 0)
 		throw SysError();
-	std::cout << "CONNECTION ACCEPTED!" << '\n';
+	
 	return (clientSocket);
 }
 
@@ -101,7 +95,6 @@ int	SimpleSocket::getServerSocket(void) const
 
 void SimpleSocket::clearData(void)
 {
-	std::cout << "CLEANING SOCKET" << '\n';
 	if (this->addrinfo != NULL)
 		freeaddrinfo(this->addrinfo);
 	if (this->serverSocket != -1)

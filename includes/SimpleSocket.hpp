@@ -57,7 +57,6 @@ private:
 	
 public:
 	SimpleSocket();
-	SimpleSocket(std::string port);
 	SimpleSocket(const SimpleSocket &other);
 	SimpleSocket &operator=(const SimpleSocket &other);
 	~SimpleSocket();

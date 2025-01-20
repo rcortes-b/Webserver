@@ -26,18 +26,10 @@ static size_t	get_key_size(std::string const &key)
 	return i;
 }
 
-/*
-Las location son especiales, el port tambien y el autoindex tambien. El resto son todos iguales
-
-Se me ocurre que en vez de hacer un setter convencional podría hacer un setter desarrollado para cada uno
-
-Tengo que mirar que sea en la misma linea, si no esta el value de la key en la misma linea es error. Es decir, tengo que buscar el punto coma;
-*/
-
 static void	setConfigValue(std::string const &line, ServerConfig &server, unsigned int counter)
 {
 	unsigned int	i = 0;
-	for (; i < line.size(); i++) // o no sea igual a ;
+	for (; i < line.size(); i++)
 	{
 		if (!std::isspace(line[i]))
 			break ;
@@ -46,35 +38,27 @@ static void	setConfigValue(std::string const &line, ServerConfig &server, unsign
 	}
 	switch (counter) {
 		case 1:
-		//std::cout << "setPort in server" << std::endl;
 				server.setPort(&line[i]);
 				break ;
 		case 2:
-		//std::cout << "setHosy in server" << std::endl;
 				server.setHost(&line[i]);
 				break ;
 		case 3:
-		//std::cout << "setServerName in server" << std::endl;
 				server.setServerName(&line[i]);
 				break ;
 		case 4:
-		//std::cout << "setErrorPage in server" << std::endl;
 				server.setErrorPage(&line[i]);
 				break ;
 		case 5:
-		//std::cout << "setMaxSize in server" << std::endl;
 				server.setMaxSize(&line[i]);
 				break ;
 		case 6:
-		//std::cout << "setRoot in server" << std::endl;
 				server.setRoot(&line[i]);
 				break ;
 		case 7:
-		//std::cout << "setIndexFile in server" << std::endl;
 				server.setIndexFile(&line[i]);
 				break ;
 		case 8:
-		//std::cout << "setAutoIndex in server" << std::endl;
 				server.setAutoIndex(&line[i]);
 				break ;
 	};
@@ -150,40 +134,6 @@ std::vector<ServerConfig>	parse_server_data(std::fstream &file)
 							throw ThrowError("Error in server: Characters after \'{\' are not allowed");
 						location_amount = 0;
 						servers.push_back(iterate_server_data(line, file));
-						//this is to delete
-						std::cout << "Servers Amount: " << servers.size() << std::endl;
-						for (std::vector<ServerConfig>::iterator it = servers.begin(); it != servers.end(); it++)
-						{
-							std::cout << "----- SERVER -----" << std::endl;
-							std::cout << "Location Size: " << (*it).getLocation().size() << std::endl;
-							for (std::vector<ServerLocation>::iterator itLoc = (*it).getLocation().begin(); itLoc != (*it).getLocation().end(); itLoc++)
-							{
-								std::cout << "----- LOCATION -----" << std::endl;
-								std::cout << "Route: " << (*itLoc).getRoute() << std::endl;
-								std::cout << "Redirect: " << (*itLoc).getRedirect() << std::endl;
-								std::cout << "Root: " << (*itLoc).getRoot() << std::endl;
-								std::cout << "Index: " << (*itLoc).getIndex() << std::endl;
-								std::cout << "AutoIndex: " << (*itLoc).getAutoIndex() << std::endl;
-								for (std::vector<std::string>::iterator itMet = (*itLoc).getMethods().begin(); itMet != (*itLoc).getMethods().end(); itMet++)
-									std::cout << "Method: " << *itMet << std::endl;
-								std::cout << "CGI size: " << (*itLoc).getCgiExtension().size() << std::endl;
-								for (std::vector<std::string>::iterator itCgi = (*itLoc).getCgiExtension().begin(); itCgi != (*itLoc).getCgiExtension().end(); itCgi++)
-									std::cout << "Cgi: " << *itCgi << std::endl;
-								std::cout << "----- END LOCATION -----" << std::endl;
-							}
-							for (std::vector<std::string>::iterator itPort = (*it).getPort().begin(); itPort != (*it).getPort().end(); itPort++)
-								std::cout << "Port of server: " << *itPort << std::endl;
-							for (std::vector<std::string>::iterator itSn = (*it).getServerName().begin(); itSn != (*it).getServerName().end(); itSn++)
-								std::cout << "ServerName of server: " << *itSn << std::endl;
-							for (std::vector<std::string>::iterator itEp = (*it).getErrorPage().begin(); itEp != (*it).getErrorPage().end(); itEp++)
-								std::cout << "Error Page of server: " << *itEp << std::endl;
-							std::cout << "Index: " << (*it).getIndex() << std::endl;
-							std::cout << "Host: " << (*it).getHost() << std::endl;
-							std::cout << "Max Size: " << (*it).getMaxSize() << std::endl;
-							std::cout << "Root: " << (*it).getRoot() << std::endl;
-							std::cout << "AutoIndex: " << (*it).getAutoIndex() << std::endl;
-							std::cout << "----- END OF SERVER -----" << std::endl;
-						}
 					}
 				}
 			}
@@ -246,12 +196,6 @@ bool	get_single_value(std::string &line, std::string &value)
 	return true;
 }
 
-/*
-Esta funcion se usa para las variables que solo tienen que ser de un item, es decir, sin vectores donde pueden haber mas de uno.
-Pues se usa para saber si todo lo que queda es espacios y un semicolon o hay mas bullshit
-Cuando devuelve 'false' habra que tirar un throw
-*/
-
 bool	is_the_end(std::string line)
 {
 	unsigned int c = 0;
@@ -288,10 +232,8 @@ bool	get_AutoIndex(std::string &line, unsigned int &autoindex)
 		autoindex = ON;
 	else if (line.substr(0, i) == "OFF")
 		autoindex = OFF;
-	else {
-		std::cout << line << " " <<  i <<line.substr(0, 1) << std::endl;
+	else
 		return false;
-	}
 	if (!is_the_end(&line[i]))
 		return false;
 	return true;
@@ -301,7 +243,6 @@ bool	get_multiple_values(std::string &line, std::vector<std::string> &vector)
 {
 	unsigned int	front_limit = 0;
 	unsigned int	back_limit = 0;
-	std::cout << "Line: " << line << std::endl;
 	for (unsigned int i = 0; i < line.size(); i++)
 	{
 		if (i > 0 && std::isspace(line[i - 1]) && (std::isalnum(line[i]) || line[i] == '.' || line[i] == '-' || line[i] == '~') && line[i] != ',' && line[i] != ';')

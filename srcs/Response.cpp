@@ -97,7 +97,6 @@ void	Response::setRedirectThrow(std::string host)
 
 void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 {
-	std::cout << statusMsg << '\n';
 	this->protocol = "HTTP/1.1";
 	this->statusCode = statusCode;
 	this->statusMsg = statusMsg;
@@ -106,13 +105,10 @@ void	Response::setBadThrow(std::string statusCode, std::string statusMsg)
 	std::string path = "./www/errors/" + this->statusCode + ".html";
 	std::vector<std::string> errorPage = this->server.getErrorPage();
 	int errorPageSize = errorPage.size();
-	std::cout << "errorPageSize: " << errorPageSize << '\n';
 	for (int i = 0; i < errorPageSize - 1; i++)
 	{
-		std::cout << "this->statusCode: " << this->statusCode << " == " << "errorPage[i]: " << errorPage[i] << "    access(errorPage[errorPageSize - 1].c_str(), R_OK):___" << errorPage[errorPageSize - 1].c_str() << "___\n";
 		if (this->statusCode == errorPage[i] && access(errorPage[errorPageSize - 1].c_str(), R_OK) == 0)
 		{
-			std::cout << "Found: " << path << '\n';
 			path = errorPage[errorPageSize - 1];
 			break;
 		}
@@ -137,7 +133,6 @@ void	Response::setUp(std::string header, char *bodyContent, ssize_t bodySize)
 		{
 			if (((unsigned long)(token = statusLine.find(" "))) == std::string::npos)
 				this->setBadThrow("400", "Bad Request");
-			std::cout << statusLine << " separator " << statusLine.substr(from, token) << '\n';
 			std::string method = statusLine.substr(from, token);
 			this->handleMethod(method);
 			statusLine = statusLine.substr(++token);
@@ -246,16 +241,13 @@ void Response::handlePath(std::string path)
 	std::string method = this->petition.getMethod();
 	if(len > 0 && path[len - 1] == '/')
 	{
-		//SI ES GET FAIG INDEX I AUTODINDEX
 		if (method == "GET")
 			this->handleIndexes(path);
-		//SI ES DELETE I ES UNA LOCATION
 		else if (method == "DELETE")
 			this->setBadThrow("403", "Forbidden");
 		else if (method == "POST")
 			return;
 	}
-	// EN CAS DE QUE SIGUI POST I NO ACABI EN '/' (ES POT CAMBIAR)
 	else 
 	{
 		// if (method == "GET" && !this->location.getCgiExtension().empty())
@@ -374,7 +366,6 @@ void Response::handleHeaders(std::string headers)
 		if (((unsigned long)(end = headers.find("\r\n", start))) == std::string::npos)
 			this->setBadThrow("411", "Length Required");
 		std::string maxBodySize = this->server.getMaxSize();
-		std::cout << "Content-Length: " << strToulNum(headers.substr(start, end - start)) << "   strToulNum(maxBodySize): " << strToulNum(maxBodySize) << '\n';
 		if (maxBodySize != "" && strToulNum(headers.substr(start, end - start)) > strToulNum(maxBodySize))
 			this->setBadThrow("413", "Content Too Large");
 	}
@@ -418,14 +409,6 @@ std::string Response::setResponseHead(std::string &resp)
 #include <stdlib.h>
 void Response::sendResponseMsg(int socketFd)
 {
-	// PARSE DEL PATH DEL ARXIU AMB access (que existexi i permisos)
-	// OBRIR L'ARXIU I REBRE INFO AMB stat()
-	// LLEGIR DEL ARXIU AMB UN BUFFER DE MAX_BODYSIZE (per fer nomes una lectura)
-	// (si la stat_buf diu que el stat_buf.st_size es mes petit que el stat_buf.blksize nomes llegir blksize perque vol dir que el body es massa gran i nomes llegim lo possible)
-	// WRITE DEL HEAD
-	// WRITE DEL BUFFER AL SOCKET (de fet nomes tractar body si el statusCode es 200)
-	// POTSER UTILITZAR SYNC I/O PER L'OPEN
-
 	std::string method = this->petition.getMethod();
 	std::string root;
 	if (this->location.getRoot().empty())
@@ -438,7 +421,6 @@ void Response::sendResponseMsg(int socketFd)
 	
 	try
 	{
-		std::cout << "StatusCode: " << statusCode << "\n" << "Method: " << method << '\n';
 		if (this->statusCode == "200")
 		{
 			if (method == "GET")
@@ -469,7 +451,7 @@ void Response::sendResponseMsg(int socketFd)
 					_cgi.setIsCgi(is_cgi(*this, path));
 				if (strPath[strPath.length() - 1] == '/')
 					this->doAutoIndex(path);
-				else if (this->_cgi.getIsCgi()) //to review
+				else if (this->_cgi.getIsCgi())
 				{
 					std::cout << "FOUND CGI!!!" << '\n';
 					this->body = this->_cgi.doCgi(path);
@@ -490,7 +472,6 @@ void Response::sendResponseMsg(int socketFd)
 			}
 			else if (method == "POST")
 			{
-				std::cerr << "SIONO: " << this->petition.getBodyContent() <<"\n";
 				if (access(path, F_OK) < 0)
 					this->setBadThrow("404", "Not Found");
 				if (is_cgi(*this, path)) {
@@ -517,10 +498,6 @@ void Response::sendResponseMsg(int socketFd)
 	catch(const std::exception& e) { }
 	std::string respMsg;
 	this->setResponseHead(respMsg);
-	std::cout << "RESPONSE:\n" << respMsg.c_str();
-	if (this->body)
-		std::cout << this->body;
-	std::cout << '\n';
 	if (send(socketFd, respMsg.c_str(), respMsg.size(), MSG_NOSIGNAL) < 0)
 		return;
 	if (this->body)
@@ -619,8 +596,6 @@ void	Response::doPost(std::ofstream &pathFile)
 		pathFile.write(bodyPetition, this->petition.getBodySize());
 		if (pathFile.fail())
 			this->setBadThrow("500", "Internal Server Error");
-	
-		std::cout << "BODY_SIZE: " << this->petition.getBodySize() << '\n';
 	}
 
 	pathFile.close();

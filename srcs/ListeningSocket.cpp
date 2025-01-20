@@ -17,10 +17,7 @@ ListeningSocket &ListeningSocket::operator=(const ListeningSocket &other)
 {
 	
 	this->bufferStr = other.bufferStr;
-	if (this->server && other.server)
-		*this->server = *other.server;
-	else
-		this->server = NULL;
+	this->server = other.server;
 	this->bufferChar = other.bufferChar;
 	this->bufferCharSize = other.bufferCharSize;
 
@@ -47,7 +44,6 @@ ListeningSocket::~ListeningSocket()
 
 int	ListeningSocket::readPetition(int clientFd)
 {
-	std::cout << "BEFORE READ PETITION" << '\n';
 	if (this->bufferChar == NULL)
 	{
 		int status = this->readHeader(clientFd);
@@ -67,7 +63,6 @@ int	ListeningSocket::readPetition(int clientFd)
 			return (2);
 	}
 
-	std::cout << "AFTER READ PETICION" << '\n';
 	return (0);
 }
 
@@ -78,16 +73,13 @@ int ListeningSocket::readHeader(int clientFd)
 	std::memset(buffer, 0, MAX_BUFFER_SIZE + 1);
 
 	bytesRead = recv(clientFd, buffer, MAX_BUFFER_SIZE, 0);
-	std::cout << "BYTES READ == " << bytesRead << '\n';
 	if (bytesRead < 0) //ERROR
 		return (1);
 	else if (bytesRead == 0) // CONNECTION CLOSED BY CLIENT
 		return (2);
 	this->bytesHeaderRead += bytesRead;
-	std::cout << "bytesRead: " << bytesRead << '\n';
 	std::string str_buffer(buffer);
 	this->bufferStr.append(str_buffer);
-	//int token = -1; what is this
 
 	if (this->bufferStr.find("\r\n\r\n") != std::string::npos)
 	{
@@ -133,8 +125,7 @@ int ListeningSocket::readBody(int clientFd)
 		}
 		while (this->bufferCharSize < content_len)
 		{
-			ssize_t readedBytes = recv(clientFd, &this->bufferChar[this->bufferCharSize], 1024, 0);	
-			//std::cout << "bodyBufferSize: " << bufferCharSize << "    readedBytes: " <<  readedBytes << "   content_len: " << content_len << "  bodySize: " << firstBodySize << '\n';
+			ssize_t readedBytes = recv(clientFd, &this->bufferChar[this->bufferCharSize], 1024, 0);
 			if (readedBytes == 0)
 				break;
 			else if (readedBytes < 0)
@@ -145,9 +136,8 @@ int ListeningSocket::readBody(int clientFd)
 	}
 	
 	this->bufferStr = header;
-	std::cout << "PETICION:\n" << header;
 	if (this->bufferChar)
-		std::cout << "asds: " <<this->bufferChar;
+		std::cout << "asds: " << this->bufferChar;
 	std::cout << '\n';
 
 	handlePetition(this->bufferStr, this->bufferChar, this->bufferCharSize, clientFd, *(this->server));

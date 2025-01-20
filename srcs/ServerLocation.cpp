@@ -44,7 +44,6 @@ ServerLocation	&ServerLocation::operator=(ServerLocation const &obj)
 
 ServerLocation::~ServerLocation(void)
 {
-	//delete if necesary
 }
 
 /* comma as separator and semi colon as finisher */
@@ -73,16 +72,6 @@ void	ServerLocation::setRoute(std::string line)
 		}
 	}
 	limit = 0;
-	/*This does not make sense !!!!!
-	while (i < line.size() && std::isspace(line[i])) {
-		i++;
-		if (line[i] == '{') {
-			limit++;
-			i++;
-		}
-	}
-	if (limit != 1 && i != line.size())
-		throw ThrowError("");*/
 }
 
 void	ServerLocation::setMethods(std::string line)
@@ -211,9 +200,6 @@ void	ServerLocation::setCgi(std::string line)
 	}
 	_isDefCgi = true;
 }
-
-// tendre que checkear todas las lineas que no haya un closing bracket
-	//primera linea se usara setRoute, ya que se supone que la primera tendra la ruta donde aplicar lo definido y un open bracket
 
 static void	setLocation(std::string key, ServerLocation &location, std::string line)
 {

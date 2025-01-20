@@ -27,7 +27,6 @@ class ServerConfig {
 			std::string					_root;
 			std::string					_index_file;
 			unsigned int				_autoindex;
-			// (...)
 
 			//this booleans determines if a value has been already defined or not
 			bool						_isDefPort;
@@ -45,7 +44,6 @@ class ServerConfig {
 			ServerConfig &operator=( ServerConfig const &obj );
 			~ServerConfig( void );
 
-			//void	setLocation();
 			void	setPort( std::string line);
 			void	setHost( std::string line);
 			void	setServerName( std::string line);

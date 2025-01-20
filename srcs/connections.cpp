@@ -16,21 +16,17 @@ void	errorHandling(int epoll_fd, std::map<int, SimpleSocket> socketsMap, std::ma
 
 void	handleSignal(int sig)
 {
-	(void)sig; //what is this
-	std::cout << "\nEXIT SERVER" << '\n';
-	terminate_sig = true;
+	if (sig == SIGINT)
+		terminate_sig = true;
 }
 
 void	connectServer(std::vector<ServerConfig> &server)
 {
-	std::cout << "START" << '\n';
 	std::signal(SIGINT, handleSignal);
 	try
 	{
-		//std::map<int, std::string> listeningSockets;
 		std::map<int, ListeningSocket> listeningMap;
 		std::map<int, SimpleSocket> socketsMap;
-		//EL WHILE GENERAL DE SERVERS DEBE SER AQUI server[i] no server[0]
 		for (it_servec it = server.begin(); it != server.end(); it++)
 		{
 			SimpleSocket socket;
@@ -45,14 +41,14 @@ void	connectServer(std::vector<ServerConfig> &server)
 						it->second.clearData();
 
 					throw NoMsgError();
-				} //tmp socket
-				socketsMap[socket.getServerSocket()] = socket; //save socket
+				}
+				socketsMap[socket.getServerSocket()] = socket;
 			}
 		}
 	
 		t_epolle events[MAX_CONNECTIONS];
 		int event_count;
-		int epoll_fd = epoll_create(MAX_CONNECTIONS); // PARA INVESTIGAR, este int almacena la info de tantos epolls(fd) como definidos como parametro en epoll_create
+		int epoll_fd = epoll_create(MAX_CONNECTIONS);
 		if (epoll_fd < 0)
 			throw SysError();
 		
@@ -61,22 +57,12 @@ void	connectServer(std::vector<ServerConfig> &server)
 			t_epolle event;
 			event.events = EPOLLIN | EPOLLOUT;
 			event.data.fd = it->second.getServerSocket();
-			std::cout << "fd: " << it->second.getServerSocket() << '\n';
-			/*epoll_ctl --> epoll_fd (direccion dnd estan la info de los epolls, EPOLL_CTL_ADD (para añadir el fd de la conexion abierta, es decir la conexion abierta por el puerto
-			a la direccion de los epolls, y event es la estructura donde ha definido EPOLLIN, es decir, que solo sea de lo que escriba el cliente "lectura"))*/
 			if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
-			{
-				std::cout << "Error on fd: " << event.data.fd << '\n';
 				errorHandling(epoll_fd, socketsMap, listeningMap);
-			}
 		}
 		while (!terminate_sig)
 		{
-			std::cout << "IN SERVER" << '\n';
-
-			std::cout << "BEFORE EPOLL" << '\n';
-			// ultimo parametro es TIMEOUT lo podemos usar (-1 = infinite)
-			event_count = epoll_wait(epoll_fd, events, MAX_CONNECTIONS, -1); //esto crea un bucle infinito hasta que pasa algo (mediante browser)
+			event_count = epoll_wait(epoll_fd, events, MAX_CONNECTIONS, -1);
 			if (terminate_sig)
 				break;
 			if (event_count == -1)
@@ -97,11 +83,11 @@ void	connectServer(std::vector<ServerConfig> &server)
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event))
 						errorHandling(epoll_fd, socketsMap, listeningMap);
 				}
-				else if (events[i].events & EPOLLIN) //para llegar al else la tiene que aceptar en el if
+				else if (events[i].events & EPOLLIN)
 				{
 					int clientFd = events[i].data.fd;
 					int status = listeningMap[clientFd].readPetition(clientFd);
-					if (status == 1) // ERROR
+					if (status == 1)
 					{
 						listeningMap.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))
@@ -109,7 +95,7 @@ void	connectServer(std::vector<ServerConfig> &server)
 						close(clientFd);
 						errorHandling(epoll_fd, socketsMap, listeningMap);
 					}
-					else if (status == 2) // CLOSED CONNECTION
+					else if (status == 2)
 					{
 						listeningMap.erase(clientFd);
 						if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, clientFd, 0))

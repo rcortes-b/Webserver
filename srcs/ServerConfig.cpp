@@ -48,7 +48,6 @@ ServerConfig	&ServerConfig::operator=(ServerConfig const &obj)
 
 ServerConfig::~ServerConfig(void)
 {
-	//eliminar lo que haga falta
 }
 
 void	ServerConfig::setPort(std::string line)
