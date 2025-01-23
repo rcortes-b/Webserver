@@ -453,7 +453,6 @@ void Response::sendResponseMsg(int socketFd)
 					this->doAutoIndex(path);
 				else if (this->_cgi.getIsCgi())
 				{
-					std::cout << "FOUND CGI!!!" << '\n';
 					this->body = this->_cgi.doCgi(path);
 					if (isActionForm)
 						isActionForm = false;

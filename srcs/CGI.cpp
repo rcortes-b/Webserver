@@ -165,9 +165,6 @@ char	*CGI::doCgi (char *path)
 		close(fd[1]);
 		char *full_path[] = {path, NULL};
 		this->parseEnvironment();
-		int c = 0;
-		while (_envp[c])
-			std::cerr << "envp: " << _envp[c++] << '\n';
 		if (execve(path, full_path, _envp) < 0)
 			throw ThrowError("Error: Failed executing CGI program");
 	}
@@ -198,6 +195,5 @@ char	*CGI::doCgi (char *path)
 	}
 	char *body_ptr = new char[body_content.size() + 1];
 	std::strcpy(body_ptr, body_content.c_str());
-	std::cout << "\n\n\n\n\nhere\n" << body_content << "\nhere\n\n\n\n\n" << std::endl;
 	return body_ptr;
 }
