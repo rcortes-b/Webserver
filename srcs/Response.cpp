@@ -497,11 +497,13 @@ void Response::sendResponseMsg(int socketFd)
 	catch(const std::exception& e) { }
 	std::string respMsg;
 	this->setResponseHead(respMsg);
-	if (send(socketFd, respMsg.c_str(), respMsg.size(), MSG_NOSIGNAL) < 0)
+	int header_status = send(socketFd, respMsg.c_str(), respMsg.size(), MSG_NOSIGNAL);
+	if (header_status < 1)
 		return;
 	if (this->body)
 	{
-		if (send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL) < 0)
+		int body_status = send(socketFd, this->body, this->bodySize, MSG_NOSIGNAL);
+		if (body_status < 1)
 			return;
 	}
 }
