@@ -148,6 +148,16 @@ bool	is_cgi(Response &resp, char *path)
 	return false;
 }
 
+void	close_fds(int fd[], int &fd_in, int &fd_out)
+{
+	close(fd[1]);
+	close(fd[0]);
+	dup2(fd_in, STDIN_FILENO);
+	close(fd_in);
+	dup2(fd_out, STDOUT_FILENO);
+	close(fd_out);
+}
+
 char	*CGI::doCgi (char *path)
 {
 	std::string body_content = "";
@@ -170,8 +180,19 @@ char	*CGI::doCgi (char *path)
 	}
 	else
 	{
-		close(fd[1]);
+		std::time_t time = std::time(NULL);
 		int status;
+		while (true) {
+			std::time_t curr_time = std::time(NULL);
+			if (waitpid(pid, &status, WNOHANG) > 0)
+				break ;
+			if (curr_time - time >= 5) {
+				kill(pid, SIGKILL);
+				close_fds(fd, fd_in, fd_out);
+				return NULL;
+			}
+		}
+		close(fd[1]);
 		waitpid(pid, &status, 0);
 		//read si el hijo ha finalizado el proceso correctamente
 		if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
@@ -185,13 +206,7 @@ char	*CGI::doCgi (char *path)
 			if (read_status == -1)
 				throw ThrowError("Error: Error reading from the pipe");
 		}
-		close(fd[0]);
-		dup2(fd_in, STDIN_FILENO);
-		close(fd_in);
-		dup2(fd_out, STDOUT_FILENO);
-		close(fd_out);
-		if (status == SIGKILL)
-			return NULL;
+		close_fds(fd, fd_in, fd_out);
 	}
 	char *body_ptr = new char[body_content.size() + 1];
 	std::strcpy(body_ptr, body_content.c_str());

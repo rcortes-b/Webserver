@@ -3,6 +3,7 @@
 
 #include "ConfigFile.hpp"
 #include <map>
+#include <ctime>
 class CGI {
     private:
             std::string _method;
